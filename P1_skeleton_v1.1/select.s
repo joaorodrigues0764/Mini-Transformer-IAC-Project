@@ -30,6 +30,7 @@ select:
   li t2, 1              # minimum vector size
   blt a2, t2, argInv    # if the size is greater than 1, don't update the code status
   bge a3, a2, outLimit  # cheks if element index > array length
+  blt a3, x0,outLimit   # cheks if element index < 0
   li a0, 0              # update of the status code
   li t4, 4              # selected element of the vector
   mul t5, a3, t4        # multiplies the index by 4 to obtain the offset

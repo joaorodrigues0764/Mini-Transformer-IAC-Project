@@ -30,14 +30,15 @@ dot:
   # TODO: Implement the dot product function here
   li t2, 0                        # accumulator 
   li t3, 1                        # minimum vector size
+  li t1, 0                        # index
   blt a3, t3, argInv              # invalid lenght
   j loop_start
   
 loop_start:
+  bge t1, a3, loop_end            # if the index overtakes, the size ends
   lw a4, 0(a1)                    # current value first vector
   lw a5, 0(a2)                    # current value second vector
-  bge t1, a3, loop_end            # if the index overtakes, the size ends
-    
+  
   mv t4, a4                       # store temporaly the value 1 to evaluate its signal
   mv t5, a5                       # store temporaly the value 2 to evaluate its signal
   srli t4, t4, 31                 # shifts the 31 bit to the first
