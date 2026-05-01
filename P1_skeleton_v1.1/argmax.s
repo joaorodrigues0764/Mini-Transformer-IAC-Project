@@ -37,7 +37,7 @@ argmax:
   
 
 loop_start:
-  bge t2, a2, loop_end    # if the current index is greater or equal to the vector size, stop
+  beq t2, a2, loop_end    # if the current index is greater or equal to the vector size, stop
   lw t4, 0(t3)            # current element
   ble t4, t0, next        # if t4 <= t0, jump to the next element of the vector
   mv t0, t4               # select the new max value
