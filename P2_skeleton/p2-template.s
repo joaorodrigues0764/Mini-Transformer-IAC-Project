@@ -169,7 +169,7 @@ main:
 # (in)  a2: maximum number of bytes to read
 read_file:
     # TODO
-    addi sp, sp, -20                                # reserve space on the stack for 3 words
+    addi sp, sp, -20                                # reserve space on the stack for 5 words
     sw a0, 16(sp)                                   # write a0 on memory
     sw a1, 12(sp)                                   # write a1 on memory
     sw a2, 8(sp)                                    # write a2 on memory
@@ -363,7 +363,7 @@ prepare_next_index:
 indices_loop_end:
     jr ra                                           # return
 
-# (out) a0: address of the output matrix (int*)
+# (in / out) a0: address of the output matrix (int*)
 # (in)  a1: address of the first matrix (int*)
 # (in)  a2: #rows of the first matrix (int)
 # (in)  a3: #columns of the first matrix (int)
@@ -372,6 +372,75 @@ indices_loop_end:
 # (in)  a6: #columns of the second matrix (int)
 matrix_multiply:
     # TODO
+    addi sp, sp, -40                                # reserve space on the stack for 10 words
+    sw s0, 36(sp)                                   # store previous s0 in the stack
+    sw s1, 32(sp)                                   # store previous s1 in the stack
+    sw s2, 28(sp)                                   # store previous s2 in the stack
+    sw s3, 24(sp)                                   # store previous s3 in the stack
+    sw s4, 20(sp)                                   # store previous s4 in the stack
+    sw s5, 16(sp)                                   # store previous s5 in the stack
+    sw s6, 12(sp)                                   # store previous s6 in the stack
+    sw s7, 8(sp)                                    # store previous s7 in the stack
+    sw s8, 4(sp)                                    # store previous s8 in the stack
+    sw ra, 0(sp)                                    # store return adress on the stack
+    mv s0, zero                                     # current row
+    mv s1, zero                                     # current column
+    mv s2, a0                                       # make a duplicate of the output matrix adress
+    mv s3, a1                                       # make a duplicate of the A matrix adress
+    mv s4, a2                                       # make a duplicate of the number of rows of the A matrix
+    mv s5, a4                                       # make a duplicate of the address of the second matrix (int*)
+    mv s7, s2                                       # make a triplicate of the output matrix adress
+    mv s8, a6                                       # make a duplicate of the number of columns of the B matrix
+    
+loop_matrix_multiply:
+    beq s0, s4, end_matrix_multiply                 # we have computed the entire matrix
+    beq s1, s8, next_row_matrix_multiply            # we have computed the entire row
+
+build_column_vector:
+    addi sp, sp, -16                                # reserve space on the stack for 4 words
+    mv s6, sp                                       # starting point of the columns vector
+    lw t0, 0(s5)                                    # load first elemnet of the column
+    sw t0, 0(sp)                                    # write first element of the column vector
+    lw t0, 16(s5)                                   # load second elemnet of the column
+    sw t0, 4(sp)                                    # write second element of the column vector
+    lw t0, 32(s5)                                   # load third elemnet of the column
+    sw t0, 8(sp)                                    # write third element of the column vector
+    lw t0, 48(s5)                                   # load fourth elemnet of the column
+    sw t0, 12(sp)                                   # write fourth element of the column vector
+    addi s5, s5, 4                                  # start of the next column
+
+continue_matrix_multiply:
+    mv a1, s3                                       # prepares the a1 argument to the dot function
+    mv a2, s6                                       # prepares the a2 argument to the dot function
+    li a3, 4                                        # size of the vector: dot function
+    jal ra, dot                                     # calling dot function
+    addi sp, sp, 16                                 # free the memory alocated to the column vector
+    sw a1, 0(s7)                                    # fills the correct entry on the output matrix
+    addi s7, s7, 4                                  # next entry on the output matrix
+    addi s1, s1, 1                                  # update column counter
+    j loop_matrix_multiply
+
+next_row_matrix_multiply:
+    addi s0, s0, 1                                  # update the row counter
+    li s1, 0                                        # restart the column counter
+    addi s5, s5, -16                                # jump to first column
+    addi s3, s3, 16                                 # first nect row entry on A matrix
+    j loop_matrix_multiply
+
+end_matrix_multiply:
+    mv a0,s2                                        # prepares the output of the function
+    lw s0, 36(sp)                                   # loads previous s0 in the stack
+    lw s1, 32(sp)                                   # loads previous s1 in the stack
+    lw s2, 28(sp)                                   # loads previous s2 in the stack
+    lw s3, 24(sp)                                   # loads previous s3 in the stack
+    lw s4, 20(sp)                                   # loads previous s4 in the stack
+    lw s5, 16(sp)                                   # loads previous s5 in the stack
+    lw s6, 12(sp)                                   # loads previous s6 in the stack
+    lw s7, 8(sp)                                    # loads previous s7 in the stack
+    lw s8, 4(sp)                                    # loads previous s8 in the stack
+    lw ra, 0(sp)                                    # loads return adress on the stack
+    addi sp, sp, 40                                 # free space on the stack for 10 words
+    jr ra                                           # return
 
 # (out) a0: address of the output scores vector (int*)
 # (in)  a1: address of Q matrix (int*)
@@ -381,6 +450,8 @@ matrix_multiply:
 # (in)  a5: target token index for which we want to compute the score (int)
 compute_scores:
     # TODO
+        
+
 
 # (out) a0: address of the selected vector (int*)
 # (in)  a1: address of matrix (int*)
@@ -673,33 +744,61 @@ print_vector_done:
 
 # (in) a0: index of the predicted token in the vocabulary (int)
 # (in) a1: address of vocabulary buffer (char*)
+# print_predicted_token:
+#     addi sp, sp, -12
+#     sw ra, 0(sp)
+#     sw s0, 4(sp)
+#     sw s1, 8(sp)
+#     mv s0, a0                                       # s0 = countdown to target index
+#     mv s1, a1                                       # s1 = current position in vocab buffer
+#     la a0, PRINT_HEADER_NEXT_TOKEN
+#     jal println
+# print_predicted_token_skip:
+#     beq s0, zero, print_predicted_token_read
+#     mv a0, s1                                       # a0 = current position in vocab buffer
+#     jal advance_to_next_token                       # a0 = next token start
+#     mv s1, a0                                       # update current position
+#     addi s0, s0, -1
+#     j print_predicted_token_skip
+# print_predicted_token_read:
+#     # s1 = start of target token, print it char by char until newline or null
+# print_predicted_token_char:
+#     lb t0, 0(s1)
+#     beq t0, zero, print_predicted_token_nl          # null terminator
+#     li t1, CONST_CHAR_NEWLINE
+#     beq t0, t1, print_predicted_token_nl            # newline terminator
+#     mv a0, t0
+#     li a7, CONST_SYSCALL_PRINT_CHAR
+#     ecall
+#     addi s1, s1, 1
+#     j print_predicted_token_char
+# print_predicted_token_nl:
+#     li a0, CONST_CHAR_NEWLINE
+#     li a7, CONST_SYSCALL_PRINT_CHAR
+#     ecall
+#     lw ra, 0(sp)
+#     lw s0, 4(sp)
+#     lw s1, 8(sp)
+#     addi sp, sp, 12
+#     ret
+#
 print_predicted_token:
-    addi sp, sp, -12
+    addi sp, sp, -8
     sw ra, 0(sp)
     sw s0, 4(sp)
-    sw s1, 8(sp)
-    mv s0, a0                                       # s0 = countdown to target index
-    mv s1, a1                                       # s1 = current position in vocab buffer
+    mv s0, a0
     la a0, PRINT_HEADER_NEXT_TOKEN
     jal println
-print_predicted_token_skip:
-    beq s0, zero, print_predicted_token_read
-    mv a0, s1                                       # a0 = current position in vocab buffer
-    jal advance_to_next_token                       # a0 = next token start
-    mv s1, a0                                       # update current position
-    addi s0, s0, -1
-    j print_predicted_token_skip
-print_predicted_token_read:
-    # s1 = start of target token, print it char by char until newline or null
+    # s0 = start of target token, print it char by char until newline or null
 print_predicted_token_char:
-    lb t0, 0(s1)
+    lb t0, 0(s0)
     beq t0, zero, print_predicted_token_nl          # null terminator
     li t1, CONST_CHAR_NEWLINE
     beq t0, t1, print_predicted_token_nl            # newline terminator
     mv a0, t0
     li a7, CONST_SYSCALL_PRINT_CHAR
     ecall
-    addi s1, s1, 1
+    addi s0, s0, 1
     j print_predicted_token_char
 print_predicted_token_nl:
     li a0, CONST_CHAR_NEWLINE
@@ -707,6 +806,5 @@ print_predicted_token_nl:
     ecall
     lw ra, 0(sp)
     lw s0, 4(sp)
-    lw s1, 8(sp)
-    addi sp, sp, 12
+    addi sp, sp, 8
     ret
