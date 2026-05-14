@@ -181,7 +181,7 @@ open:
     li a1, 0                                        # flag of read only file
     ecall                                           # call to the system, a0 is now the file descriptor
     li t0, -1                                       # read error code
-    beq a0, t0, end                                 # give error if there is any read error
+    beq a0, t0, end_read_file                       # give error if there is any read error
 
 read:
     lw a1, 12(sp)                                   # load from memory the buffer adress
@@ -198,7 +198,7 @@ close:
     ecall                                           # call to the system
     lw a0, 16(sp)                                   # load real read bytes from memory
 
-end:
+end_read_file:
     lw ra, 4(sp)                                    # load return adress from memory
     addi sp, sp, 20                                 # free reserved memory
     jr ra                                           # return
@@ -227,7 +227,7 @@ loop_parse_matrix_buffer:
     beq t5, t6, new_row                             # if the byte represents '\n', increase the rows counter
 
     li t6, CONST_CHAR_EOF                           # ASCII code to 'EOF'
-    beq t5, t6, end                                 # if the byte represents 'EOF' it's the last element
+    beq t5, t6, loop_parse_matrix_buffer_end        # if the byte represents 'EOF' it's the last element
 
     li t6, CONST_CHAR_HYPHEN                        # ASCII code to '-'
     bne t5, t6, calc_new_digit                      # jumo to the calculus of the updated integer
@@ -267,7 +267,7 @@ new_row:
     bne t4, zero, new_negative_integer              # the integer is negative
     j new_integer
 
-end:
+loop_parse_matrix_buffer_end:
     mv a1, t0                                       # move the output
     jr ra                                           # return
 
@@ -327,15 +327,41 @@ prepare_new_search:
     j loop_tokens_to_indices
 
 
-
-
-
 # (in / out) a0: address of the output matrix to fill (int*)
 # (in)  a1: address of the vocabulary embeddings matrix (int*)
 # (in)  a2: address of the input indices array (int*)
 # (in)  a3: number of tokens in the input (int)
 build_input_embeddings_matrix:
     # TODO
+    mv t0, zero                                     # current indices vector index
+    mv t1, a0                                       # copy output matrix adress
+
+indices_loop:
+    beq t0, a3, indices_loop_end                    # we've reached the end of the input
+    lw t2, 0(a2)                                    # current index
+    addi a2, a2, 4                                  # next index
+
+calc_adress:
+    slli t2, t2, 4                                  # index * (collums * 4)
+    add t2, t2, a1                                  # final adress (base adress + offset)
+
+copy_values_to_adress:
+    lw t3, 0(t2)                                    # load first value of vocab embeddings
+    sw t3, 0(t1)                                    # write first value in the output matrix
+    lw t3, 4(t2)                                    # load second value of vocab embeddings
+    sw t3, 4(t1)                                    # write second value in the output matrix
+    lw t3, 8(t2)                                    # load third value of vocab embeddings
+    sw t3, 8(t1)                                    # write third value in the output matrix
+    lw t3, 12(t2)                                   # load fourth value of vocab embeddings
+    sw t3, 12(t1)                                   # write fourth value in the output matrix
+
+prepare_next_index:
+    addi t1, t1, 16                                 # next output matrix row
+    addi t0, t0, 1                                  # update the index counter
+    j indices_loop
+
+indices_loop_end:
+    jr ra                                           # return
 
 # (out) a0: address of the output matrix (int*)
 # (in)  a1: address of the first matrix (int*)
