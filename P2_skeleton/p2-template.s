@@ -372,74 +372,90 @@ indices_loop_end:
 # (in)  a6: #columns of the second matrix (int)
 matrix_multiply:
     # TODO
-    addi sp, sp, -40                                # reserve space on the stack for 10 words
-    sw s0, 36(sp)                                   # store previous s0 in the stack
-    sw s1, 32(sp)                                   # store previous s1 in the stack
-    sw s2, 28(sp)                                   # store previous s2 in the stack
-    sw s3, 24(sp)                                   # store previous s3 in the stack
-    sw s4, 20(sp)                                   # store previous s4 in the stack
-    sw s5, 16(sp)                                   # store previous s5 in the stack
-    sw s6, 12(sp)                                   # store previous s6 in the stack
-    sw s7, 8(sp)                                    # store previous s7 in the stack
-    sw s8, 4(sp)                                    # store previous s8 in the stack
-    sw ra, 0(sp)                                    # store return adress on the stack
+    addi sp, sp, -52                                # reserve space on the stack for 13 words
+    sw s0, 48(sp)                                   # store previous s0 in the stack
+    sw s1, 44(sp)                                   # store previous s1 in the stack
+    sw s2, 40(sp)                                   # store previous s2 in the stack
+    sw s3, 36(sp)                                   # store previous s3 in the stack
+    sw s4, 32(sp)                                   # store previous s4 in the stack
+    sw s5, 28(sp)                                   # store previous s5 in the stack
+    sw s6, 24(sp)                                   # store previous s6 in the stack
+    sw s7, 20(sp)                                   # store previous s7 in the stack
+    sw s8, 16(sp)                                   # store previous s8 in the stack
+    sw s9, 12(sp)                                   # store previous s9 in the stack
+    sw s10, 8(sp)                                   # store previous s10 in the stack
+    sw s11, 4(sp)                                   # store previous s11 in the stack
+    sw ra, 0(sp)                                    # store return address on the stack
     mv s0, zero                                     # current row
     mv s1, zero                                     # current column
-    mv s2, a0                                       # make a duplicate of the output matrix adress
-    mv s3, a1                                       # make a duplicate of the A matrix adress
+    mv s2, a0                                       # make a duplicate of the output matrix address
+    mv s3, a1                                       # make a duplicate of the A matrix address
     mv s4, a2                                       # make a duplicate of the number of rows of the A matrix
-    mv s5, a4                                       # make a duplicate of the address of the second matrix (int*)
-    mv s7, s2                                       # make a triplicate of the output matrix adress
+    mv s5, a4                                       # make a duplicate of the address of the B matrix
+    mv s7, s2                                       # make a triplicate of the output matrix address
     mv s8, a6                                       # make a duplicate of the number of columns of the B matrix
-    
+    mv s9, a3                                       # make a duplicate of the number of columns of the A matrix
+    mv s11, a4                                      # make a triplicate of the address of the  B matrix 
+    slli s10, s8, 2                                 # calculate the memory jump to the next row of B
+
 loop_matrix_multiply:
     beq s0, s4, end_matrix_multiply                 # we have computed the entire matrix
     beq s1, s8, next_row_matrix_multiply            # we have computed the entire row
 
 build_column_vector:
-    addi sp, sp, -16                                # reserve space on the stack for 4 words
+    slli t0, s9, 2                                  # calculate the total size of the column vector
+    sub sp, sp, t0                                  # reserve space on the stack for the column vector
     mv s6, sp                                       # starting point of the columns vector
-    lw t0, 0(s5)                                    # load first elemnet of the column
-    sw t0, 0(sp)                                    # write first element of the column vector
-    lw t0, 16(s5)                                   # load second elemnet of the column
-    sw t0, 4(sp)                                    # write second element of the column vector
-    lw t0, 32(s5)                                   # load third elemnet of the column
-    sw t0, 8(sp)                                    # write third element of the column vector
-    lw t0, 48(s5)                                   # load fourth elemnet of the column
-    sw t0, 12(sp)                                   # write fourth element of the column vector
-    addi s5, s5, 4                                  # start of the next column
+    mv t1, zero                                     # start the iterator
+    mv t2, s5                                       # start the pointer to traverse the current column of B
+
+copy_column_loop:
+    beq t1, s9, continue_matrix_multiply            # we have copied the entire column
+    lw t3, 0(t2)                                    # load element from the B matrix
+    slli t4, t1, 2                                  # calculate the offset of the current element
+    add t4, s6, t4                                  # calculate the memory address in the stack
+    sw t3, 0(t4)                                    # write the element to the column vector
+    add t2, t2, s10                                 # advance pointer to the next element of the column
+    addi t1, t1, 1                                  # update iterator
+    j copy_column_loop                              # jump to copy the next element
 
 continue_matrix_multiply:
     mv a1, s3                                       # prepares the a1 argument to the dot function
     mv a2, s6                                       # prepares the a2 argument to the dot function
-    li a3, 4                                        # size of the vector: dot function
+    mv a3, s9                                       # prepares the a3 argument to the dot function
     jal ra, dot                                     # calling dot function
-    addi sp, sp, 16                                 # free the memory alocated to the column vector
+    slli t0, s9, 2                                  # calculate the total size of the column vector
+    add sp, sp, t0                                  # free the memory allocated to the column vector
     sw a1, 0(s7)                                    # fills the correct entry on the output matrix
     addi s7, s7, 4                                  # next entry on the output matrix
+    addi s5, s5, 4                                  # start of the next column
     addi s1, s1, 1                                  # update column counter
-    j loop_matrix_multiply
+    j loop_matrix_multiply                          # jump to compute the next entry
 
 next_row_matrix_multiply:
     addi s0, s0, 1                                  # update the row counter
     li s1, 0                                        # restart the column counter
-    addi s5, s5, -16                                # jump to first column
-    addi s3, s3, 16                                 # first nect row entry on A matrix
-    j loop_matrix_multiply
+    mv s5, s11                                      # jump to first column
+    slli t0, s9, 2                                  # calculate the size of a row of A
+    add s3, s3, t0                                  # next row entry on A matrix
+    j loop_matrix_multiply                          # jump to compute the next row
 
 end_matrix_multiply:
-    mv a0,s2                                        # prepares the output of the function
-    lw s0, 36(sp)                                   # loads previous s0 in the stack
-    lw s1, 32(sp)                                   # loads previous s1 in the stack
-    lw s2, 28(sp)                                   # loads previous s2 in the stack
-    lw s3, 24(sp)                                   # loads previous s3 in the stack
-    lw s4, 20(sp)                                   # loads previous s4 in the stack
-    lw s5, 16(sp)                                   # loads previous s5 in the stack
-    lw s6, 12(sp)                                   # loads previous s6 in the stack
-    lw s7, 8(sp)                                    # loads previous s7 in the stack
-    lw s8, 4(sp)                                    # loads previous s8 in the stack
-    lw ra, 0(sp)                                    # loads return adress on the stack
-    addi sp, sp, 40                                 # free space on the stack for 10 words
+    mv a0, s2                                       # prepares the output of the function
+    lw s0, 48(sp)                                   # loads previous s0 in the stack
+    lw s1, 44(sp)                                   # loads previous s1 in the stack
+    lw s2, 40(sp)                                   # loads previous s2 in the stack
+    lw s3, 36(sp)                                   # loads previous s3 in the stack
+    lw s4, 32(sp)                                   # loads previous s4 in the stack
+    lw s5, 28(sp)                                   # loads previous s5 in the stack
+    lw s6, 24(sp)                                   # loads previous s6 in the stack
+    lw s7, 20(sp)                                   # loads previous s7 in the stack
+    lw s8, 16(sp)                                   # loads previous s8 in the stack
+    lw s9, 12(sp)                                   # loads previous s9 in the stack
+    lw s10, 8(sp)                                   # loads previous s10 in the stack
+    lw s11, 4(sp)                                   # loads previous s11 in the stack
+    lw ra, 0(sp)                                    # loads return address on the stack
+    addi sp, sp, 52                                 # free space on the stack for 13 words
     jr ra                                           # return
 
 # (out) a0: address of the output scores vector (int*)
@@ -460,6 +476,10 @@ compute_scores:
 # (in)  a4: target row
 select_vector_in_matrix:
     # TODO
+    mul t1, a4, a2 # multiplicar  colunas pelo o numero da linha que quero
+    slli t1, t1, 2 #
+    add a0, a1, t1 #
+    jr ra
 
 # (out) a0: index of the predicted token in the vocabulary (int)
 # (in)  a0: address of target vector (int*)
