@@ -17,7 +17,7 @@
 .equ CONST_SYSCALL_OPEN 1024
 .equ CONST_SYSCALL_CLOSE 57
 .equ CONST_SYSCALL_READ 63
-.equ CONST_SYSCALL_WRITE 64
+.equ CONST_SYSCALL_WRITE 64 
 
 ###########################################################################
 # ASCII character constants
@@ -165,29 +165,172 @@ main:
 
 # Read from a text file into a buffer.
 # (in)  a0: filename address (char*)
-# (in)  a1: destination buffer
+# (in / out)  a1: destination buffer
 # (in)  a2: maximum number of bytes to read
 read_file:
     # TODO
+    addi sp, sp, -20                                # reserve space on the stack for 3 words
+    sw a0, 16(sp)                                   # write a0 on memory
+    sw a1, 12(sp)                                   # write a1 on memory
+    sw a2, 8(sp)                                    # write a2 on memory
+    sw ra, 4(sp)                                    # write ra on memory
+
+open:
+
+    li a7, CONST_SYSCALL_OPEN                       # open file srvice code
+    li a1, 0                                        # flag of read only file
+    ecall                                           # call to the system, a0 is now the file descriptor
+    li t0, -1                                       # read error code
+    beq a0, t0, end                                 # give error if there is any read error
+
+read:
+    lw a1, 12(sp)                                   # load from memory the buffer adress
+    lw a2, 8(sp)                                    # load from memory max number of bits
+    sw a0, 0(sp)                                    # save on memory the file descriptor
+    li a7, CONST_SYSCALL_READ                                       # read file service code
+    ecall                                           # call to the system, a0 is now the real number of read bites
+
+close:
+    mv t1, a0                                       # copy the number of read bytes
+    lw a0, 0(sp)                                    # load from memory the file descriptor
+    sw t1, 16(sp)                                   # save on memory the number of read bytes
+    li a7, CONST_SYSCALL_CLOSE                      # close file service code
+    ecall                                           # call to the system
+    lw a0, 16(sp)                                   # load real read bytes from memory
+
+end:
+    lw ra, 4(sp)                                    # load return adress from memory
+    addi sp, sp, 20                                 # free reserved memory
+    jr ra                                           # return
 
 # Assumes the matrix is stored in the buffer as space-separated integers.
 # Assumes columns are separated by 1 space (' '), and rows by 1 newline ('\n').
 # Assumes only signed integers are provided.
-# (out) a0: address of the matrix to fill (int*)
+# (in / out) a0: address of the matrix to fill (int*)
 # (out) a1: number of rows in the matrix (int)
 # (in)  a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
     # TODO
+    mv t0, zero                                     # rows counter
+    mv t1, zero                                     # current integer
+    li t2, 10                                       # multiplier
+    mv t3, a0                                       # copy the matrix adress
+    mv t4, zero                                     # negative integer flag
+
+loop_parse_matrix_buffer:
+    lb t5, 0(a1)                                    # load of the current byte from the buffer
+
+    li t6, CONST_CHAR_SPACE                         # ASCII code to ' '
+    beq t5, t6, new_collum                          # if the byte represents ' ', skip to next byte
+
+    li t6, CONST_CHAR_NEWLINE                       # ASCII code to '\n'
+    beq t5, t6, new_row                             # if the byte represents '\n', increase the rows counter
+
+    li t6, CONST_CHAR_EOF                           # ASCII code to 'EOF'
+    beq t5, t6, end                                 # if the byte represents 'EOF' it's the last element
+
+    li t6, CONST_CHAR_HYPHEN                        # ASCII code to '-'
+    bne t5, t6, calc_new_digit                      # jumo to the calculus of the updated integer
+    addi t4, t4, -1                                 # the integer is negative
+
+    addi a1, a1, 1                                  # next byte
+    
+    j loop_parse_matrix_buffer
+
+calc_new_digit:
+    mul t1, t1, t2                                  # shift to the left on decimal base
+    addi t5, t5, -CONST_CHAR_ZERO                   # convert the digit from ASCII to decimal base
+    add t1, t1, t5                                  # update the current integer
+
+    addi a1, a1, 1                                  # next byte
+
+    j loop_parse_matrix_buffer 
+
+new_collum:
+    bne t4, zero, new_negative_integer              # the integer is negative
+    j new_integer
+
+new_integer:
+    sw t1, 0(t3)                                    # filling the matrix with the integer
+    mv t1, zero                                     # restart curent integer to 0
+    addi t3, t3, 4                                  # next word space
+    addi a1, a1, 1                                  # next byte
+    j loop_parse_matrix_buffer
+
+new_negative_integer:
+    mul t1, t1, t4                                  # converting to negative integer
+    mv t4, zero                                     # restart the flag
+    j new_integer
+
+new_row:
+    addi t0, t0, 1                                  # increase the number of rows
+    bne t4, zero, new_negative_integer              # the integer is negative
+    j new_integer
+
+end:
+    mv a1, t0                                       # move the output
+    jr ra                                           # return
+
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
-# (in)  a0: address of input indices vector to fill (int*)
+# (in / out)  a0: address of input indices vector to fill (int*)
 # (in)  a2: address to input buffer
 # (in)  a3: address to vocabulary buffer
 # (out) a1: size of input indices vector (number of tokens in input)
 tokens_to_indices:
     # TODO
+    mv t0, zero                                     # number of words in the input
+    mv t1, a3                                       # copy of the vocab buffer pointer
+    mv t2, a2                                       # copy of the input buffer pointer
+    mv t3, zero                                     # current vocab word
 
-# (out) a0: address of the output matrix to fill (int*)
+loop_tokens_to_indices:
+    lb t4, 0(t2)                                    # current input character
+    li t5, CONST_CHAR_EOF                           # ASCII code to 'EOF'
+    beq t4, t5, end_of_input                        # we've reached the end of the input
+    lb t5, 0(t1)                                    # current vocab character
+    bne t4, t5, not_equal_characters                # if the characters are not equal, the comparison has failed
+
+equal_characters:
+    li t5, CONST_CHAR_NEWLINE                       # ASCII code to '\n'
+    beq t4, t5, end_of_word                         # if both characters are '\n' the word has ended and we have a match
+    addi t1, t1, 1                                  # next vocab byte
+    addi t2, t2, 1                                  # next input byte
+    j loop_tokens_to_indices
+
+end_of_input:
+    mv a1, t0                                       # copy the number of words in the input
+    jr ra                                           # return
+
+end_of_word:
+    slli t1, t0, 2                                  # calculate the offset
+    addi t1, t1, a0                                 # pointer to the correct inidice to fill
+    sw t3, 0(t1)                                    # write the indice in the vector
+    addi t0, t0, 1                                  # increase the number of computed words
+    mv t3, zero                                     # restart the vocab word index
+    addi t2, t2, 1                                  # next input byte
+    mv a2, t2                                       # start at next input word
+    mv t1, a3                                       # start at the vocab starting point
+    j loop_tokens_to_indices
+
+not_equal_characters:
+    li t4, CONST_CHAR_NEWLINE                       # ASCII code to '\n'
+    beq t5, t4, prepare_new_search                  # we've reached the end of this vocab word
+    addi t1, t1, 1                                  # next vocab byte
+    lb t5, 0(t1)                                    # current vocab character
+    j not_equal_characters                          # we have not reached the end of this vocab word
+
+prepare_new_search:
+    addi t3, t3, 1                                  # increase the counter of current vocab word
+    addi t1, t1, 1                                  # next vocab byte
+    mv t2, a2                                       # start again at the input word's starting point
+    j loop_tokens_to_indices
+
+
+
+
+
+# (in / out) a0: address of the output matrix to fill (int*)
 # (in)  a1: address of the vocabulary embeddings matrix (int*)
 # (in)  a2: address of the input indices array (int*)
 # (in)  a3: number of tokens in the input (int)
