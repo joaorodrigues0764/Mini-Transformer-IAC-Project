@@ -458,7 +458,7 @@ end_matrix_multiply:
     addi sp, sp, 52                                 # free space on the stack for 13 words
     jr ra                                           # return
 
-# (out) a0: address of the output scores vector (int*)
+# (in / out) a0: address of the output scores vector (int*)
 # (in)  a1: address of Q matrix (int*)
 # (in)  a2: address of K matrix (int*)
 # (in)  a3: #rows of Q and K (int)
@@ -466,8 +466,62 @@ end_matrix_multiply:
 # (in)  a5: target token index for which we want to compute the score (int)
 compute_scores:
     # TODO
-        
+    slli t0, a4, 2                                  # size, in bytes, of one line (number_of_columns * 4)
+    mul t0, t0, a5                                  # total offset (line_size * number_of_lines)
+    addi t0, t0, a1                                 # updated pointer to target in Q matrix
 
+    addi sp, sp, -32                                # reserve space on the stack for 9 words
+    sw s0, 28(sp)                                   # store previous s0 in the stack
+    sw s1, 24(sp)                                   # store previous s1 in the stack
+    sw s2, 20(sp)                                   # store previous s2 in the stack
+    sw s3, 16(sp)                                   # store previous s3 in the stack
+    sw s4, 12(sp)                                   # store previous s4 in the stack
+    sw s5, 8(sp)                                    # store previous s5 in the stack
+    sw s6, 4(sp)                                    # store previous s6 in the stack
+    sw ra, 0(sp)                                    # store return address on the stack
+
+    mv s0, a0                                       # make a duplicate of the output adress
+    mv s1, a2                                       # make a duplicate of the K matrix adress
+    mv s2, a3                                       # make a duplicate of the number of rows of Q and K
+    mv s3, a4                                       # make a duplicate of the number of columns of Q and K
+    mv s4, s0                                       # make a duplicate of the target
+    mv s5, t0                                       # make a duplicate of the target starting point pointer
+    mv s6, zero                                     # number of computed K rows
+
+compute_scores_loop:
+    beq s6, s2, compute_scores_end                  # we have computed the entire matrix
+    
+    mv a1, s5                                       # prepare argument a1 for the dot funtion
+    mv a2, s1                                       # prepare argument a2 for dot function
+    mv a3, s3                                       # prepare argument a3 for the dot function
+    
+    jal ra, dot                                     # call the dot function
+
+    sw a1, 0(s4)                                    # write the result on the output matrix
+    addi s4, s4, 4                                  # next entry on the output matrix
+    addi s6, s6, 1                                  # update the computed rows counter
+
+    slli t0, s3, 2                                  # size, in bytes, of one line (number_of_columns * 4)
+    add s1, s1, t0                                  # next K matrix row
+
+    j compute_scores_loop
+
+compute_scores_end:
+    mv a0, s0                                       # prepare the output argument
+    
+    lw s0, 28(sp)                                   # loads previous s0 in the stack
+    lw s1, 24(sp)                                   # loads previous s1 in the stack
+    lw s2, 20(sp)                                   # loads previous s2 in the stack
+    lw s3, 16(sp)                                   # loads previous s3 in the stack
+    lw s4, 12(sp)                                   # loads previous s4 in the stack
+    lw s5, 8(sp)                                    # loads previous s5 in the stack
+    lw s6, 4(sp)                                    # loads previous s6 in the stack
+    lw ra, 0(sp)                                    # loads return address on the stack
+    addi sp, sp, 32                                 # free space on the stack for 9 words
+
+    jr ra                                           # return
+    
+    
 
 # (out) a0: address of the selected vector (int*)
 # (in)  a1: address of matrix (int*)
@@ -476,9 +530,9 @@ compute_scores:
 # (in)  a4: target row
 select_vector_in_matrix:
     # TODO
-    mul t1, a4, a2 # multiplicar  colunas pelo o numero da linha que quero
-    slli t1, t1, 2 #
-    add a0, a1, t1 #
+    slli t0, a3, 2                                  # size, in bytes, of one line (number_of_columns * 4)
+    mul t0, t0, a4                                  # total offset (line_size * target row number)
+    add a0, a1, t1                                  #
     jr ra
 
 # (out) a0: index of the predicted token in the vocabulary (int)
@@ -487,6 +541,12 @@ select_vector_in_matrix:
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
     # TODO
+    
+
+
+
+
+
 
 #############################################################################################################
 # Dot product and argmax helper functions.
@@ -762,46 +822,6 @@ print_vector_done:
     addi sp, sp, 8
     ret
 
-# (in) a0: index of the predicted token in the vocabulary (int)
-# (in) a1: address of vocabulary buffer (char*)
-# print_predicted_token:
-#     addi sp, sp, -12
-#     sw ra, 0(sp)
-#     sw s0, 4(sp)
-#     sw s1, 8(sp)
-#     mv s0, a0                                       # s0 = countdown to target index
-#     mv s1, a1                                       # s1 = current position in vocab buffer
-#     la a0, PRINT_HEADER_NEXT_TOKEN
-#     jal println
-# print_predicted_token_skip:
-#     beq s0, zero, print_predicted_token_read
-#     mv a0, s1                                       # a0 = current position in vocab buffer
-#     jal advance_to_next_token                       # a0 = next token start
-#     mv s1, a0                                       # update current position
-#     addi s0, s0, -1
-#     j print_predicted_token_skip
-# print_predicted_token_read:
-#     # s1 = start of target token, print it char by char until newline or null
-# print_predicted_token_char:
-#     lb t0, 0(s1)
-#     beq t0, zero, print_predicted_token_nl          # null terminator
-#     li t1, CONST_CHAR_NEWLINE
-#     beq t0, t1, print_predicted_token_nl            # newline terminator
-#     mv a0, t0
-#     li a7, CONST_SYSCALL_PRINT_CHAR
-#     ecall
-#     addi s1, s1, 1
-#     j print_predicted_token_char
-# print_predicted_token_nl:
-#     li a0, CONST_CHAR_NEWLINE
-#     li a7, CONST_SYSCALL_PRINT_CHAR
-#     ecall
-#     lw ra, 0(sp)
-#     lw s0, 4(sp)
-#     lw s1, 8(sp)
-#     addi sp, sp, 12
-#     ret
-#
 print_predicted_token:
     addi sp, sp, -8
     sw ra, 0(sp)
