@@ -66,51 +66,97 @@ main:
     # Read vocabulary
     ###########################################################################
     # TODO
+    la a0, VOCABULARY_FILENAME                          # file path
+    la a1, VOCAB_BUFFER                                 # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read vocab
 
     ###########################################################################
     # Read input
     ###########################################################################
     # TODO
+    la a0, INPUT_FILENAME                               # file path
+    la a1, INPUT_BUFFER                                 # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read input
 
     ###########################################################################
     # Read W_Q matrix
     ###########################################################################
     # TODO
+    la a0, W_Q_FILENAME                                 # file path
+    la a1, MATRIX_BUFFER                                # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read W_Q matrix
 
     ###########################################################################
     # Parse W_Q matrix
     ###########################################################################
     # TODO
+    la a0, W_Q_MATRIX                                   # Q matrix adress
+    la a1, MATRIX_BUFFER                                # matrix data buffer
+    
+    jal parse_matrix_buffer                             # parse Q matrix
 
     ###########################################################################
     # Read W_K matrix
     ###########################################################################
     # TODO
+    la a0, W_K_FILENAME                                 # file path
+    la a1, MATRIX_BUFFER                                # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read W_K matrix
 
     ###########################################################################
     # Parse W_K matrix from buffer
     ###########################################################################
     # TODO
+    la a0, W_K_MATRIX                                   # K matrix adress
+    la a1, MATRIX_BUFFER                                # matrix data buffer
+    
+    jal parse_matrix_buffer                             # parse K matrix
 
     ###########################################################################
     # Read W_V matrix
     ###########################################################################
     # TODO
+    la a0, W_V_MATRIX                                   # file path
+    la a1, MATRIX_BUFFER                                # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read W_V matrix
 
     ###########################################################################
     # Parse W_V matrix from buffer
     ###########################################################################
     # TODO
+    la a0, W_V_MATRIX                                   # V matrix adress
+    la a1, MATRIX_BUFFER                                # matrix data buffer
+    
+    jal parse_matrix_buffer                             # parse V matrix
 
     ###########################################################################
     # Read embeddings matrix
     ###########################################################################
     # TODO
+    la a0, EMBEDDINGS_FILENAME                          # file path
+    la a1, MATRIX_BUFFER                                # destination buffer
+    li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
+
+    jal read_file                                       # read embeddings matrix
 
     ###########################################################################
     # Parse vocabulary embeddings matrix from buffer
     ###########################################################################
     # TODO
+    la a0, VOCAB_EMBEDDINGS_MATRIX                      # vocab embeddings matrix adress
+    la a1, MATRIX_BUFFER                                # matrix data buffer
+    
+    jal parse_matrix_buffer                             # parse V matrix
 
     ###########################################################################
     # Convert input tokens to indices
@@ -386,6 +432,7 @@ matrix_multiply:
     sw s10, 8(sp)                                       # store previous s10 in the stack
     sw s11, 4(sp)                                       # store previous s11 in the stack
     sw ra, 0(sp)                                        # store return address on the stack
+    
     mv s0, zero                                         # current row
     mv s1, zero                                         # current column
     mv s2, a0                                           # make a duplicate of the output matrix address
@@ -396,6 +443,7 @@ matrix_multiply:
     mv s8, a6                                           # make a duplicate of the number of columns of the B matrix
     mv s9, a3                                           # make a duplicate of the number of columns of the A matrix
     mv s11, a4                                          # make a triplicate of the address of the  B matrix 
+    
     slli s10, s8, 2                                     # calculate the memory jump to the next row of B
 
 loop_matrix_multiply:
