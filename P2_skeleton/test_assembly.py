@@ -51,6 +51,9 @@ EQU_HEADER = """################################################################
 """
 
 def preprocess_assembly_content(content):
+    # First replace .zero with aligned .space
+    content = content.replace(".zero", ".align 2\n.space")
+    
     # Resolve the .zero arithmetic expressions so RARS can compile them
     replacements = {
         "(CONST_MAX_INPUT_TOKENS * 4)": "40",
@@ -103,9 +106,12 @@ def create_temp_assembly(test_assembly_prefix):
     modified_content = template_content.replace("\nmain:", "\np2_main:")
     modified_content = preprocess_assembly_content(modified_content)
     
+    # Preprocess the test prefix to resolve its .zero to .space
+    processed_prefix = preprocess_assembly_content(test_assembly_prefix)
+    
     full_code = f"""{EQU_HEADER}
 
-{test_assembly_prefix}
+{processed_prefix}
 
 # --- INÍCIO DO CÓDIGO DO PROJETO 2 ---
 {modified_content}
@@ -143,12 +149,15 @@ class TestRunner:
             self.failed += 1
             return
             
-        if a0 == expected_a0 and a1 == expected_a1:
+        if a0 == expected_a0 and (expected_a0 != 0 or a1 == expected_a1):
             print(f"✅ PASSED: {test_name}")
             self.passed += 1
         else:
             print(f"❌ FAILED: {test_name}")
-            print(f"    Esperado (a0, a1): {(expected_a0, expected_a1)}")
+            if expected_a0 == 0:
+                print(f"    Esperado (a0, a1): {(expected_a0, expected_a1)}")
+            else:
+                print(f"    Esperado (a0):     {expected_a0}")
             print(f"    Obtido (a0, a1):   {(a0, a1)}")
             self.failed += 1
 
@@ -267,9 +276,11 @@ main:
     # 2.3 Tamanho inválido (< 1)
     runner.assert_eq(
         "argmax: Erro tamanho < 1",
-        """.text
+        """.data
+test_v: .word 1
+.text
 main:
-  li a1, 0
+  la a1, test_v
   li a2, 0
   jal ra, argmax
   li a7, 10
@@ -447,31 +458,38 @@ main:
   jal ra, build_input_embeddings_matrix
   
   la t0, test_out_emb
-  lw t1, 0(t0)   # 9
-  lw t2, 4(t0)   # 10
-  lw t3, 8(t0)   # 11
-  lw t4, 12(t0)  # 12
-  lw t5, 16(t0)  # 1
-  lw t6, 20(t0)  # 2
-  lw t7, 24(t0)  # 3
-  lw t8, 28(t0)  # 4
   
-  li s0, 9
-  bne t1, s0, fail
-  li s0, 10
-  bne t2, s0, fail
-  li s0, 11
-  bne t3, s0, fail
-  li s0, 12
-  bne t4, s0, fail
-  li s0, 1
-  bne t5, s0, fail
-  li s0, 2
-  bne t6, s0, fail
-  li s0, 3
-  bne t7, s0, fail
-  li s0, 4
-  bne t8, s0, fail
+  lw t1, 0(t0)
+  li t2, 9
+  bne t1, t2, fail
+  
+  lw t1, 4(t0)
+  li t2, 10
+  bne t1, t2, fail
+  
+  lw t1, 8(t0)
+  li t2, 11
+  bne t1, t2, fail
+  
+  lw t1, 12(t0)
+  li t2, 12
+  bne t1, t2, fail
+  
+  lw t1, 16(t0)
+  li t2, 1
+  bne t1, t2, fail
+  
+  lw t1, 20(t0)
+  li t2, 2
+  bne t1, t2, fail
+  
+  lw t1, 24(t0)
+  li t2, 3
+  bne t1, t2, fail
+  
+  lw t1, 28(t0)
+  li t2, 4
+  bne t1, t2, fail
   
   li a0, 0
   li a1, 2

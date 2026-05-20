@@ -71,6 +71,7 @@ main:
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
 
     jal read_file                                       # read vocab
+    
 
     ###########################################################################
     # Read input
