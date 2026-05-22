@@ -744,7 +744,7 @@ decide_next_token_end:
 indices_to_tokens:
     #TODO
     beq a1, zero, indices_to_tokens_end                 # if the target index is 0, the first word starts at the beginning of the buffer
-    mv t0, 0                                            # counter of newlines encountered
+    mv t0, zero                                         # counter of newlines encountered
     li t1, CONST_CHAR_NEWLINE                           # ASCII code to '\n'
 
 loop_indices_to_tokens:
