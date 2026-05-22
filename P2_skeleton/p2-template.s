@@ -97,10 +97,10 @@ main:
     # Parse W_Q matrix
     ###########################################################################
     # TODO
-    la a0, W_Q_MATRIX                                   # Q matrix adress
+    la a0, W_Q_MATRIX                                   # W_q matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
-    jal parse_matrix_buffer                             # parse Q matrix
+    jal parse_matrix_buffer                             # parse W_q matrix
 
     ###########################################################################
     # Read W_K matrix
@@ -116,10 +116,10 @@ main:
     # Parse W_K matrix from buffer
     ###########################################################################
     # TODO
-    la a0, W_K_MATRIX                                   # K matrix adress
+    la a0, W_K_MATRIX                                   # W_k matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
-    jal parse_matrix_buffer                             # parse K matrix
+    jal parse_matrix_buffer                             # parse W_k matrix
 
     ###########################################################################
     # Read W_V matrix
@@ -135,10 +135,10 @@ main:
     # Parse W_V matrix from buffer
     ###########################################################################
     # TODO
-    la a0, W_V_MATRIX                                   # V matrix adress
+    la a0, W_V_MATRIX                                   # W_v matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
-    jal parse_matrix_buffer                             # parse V matrix
+    jal parse_matrix_buffer                             # parse W_v matrix
 
     ###########################################################################
     # Read embeddings matrix
@@ -157,7 +157,7 @@ main:
     la a0, VOCAB_EMBEDDINGS_MATRIX                      # vocab embeddings matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
-    jal parse_matrix_buffer                             # parse V matrix
+    jal parse_matrix_buffer                             # parse vocab embeddings matrix
 
     la t0, VOCAB_TOTAL_TOKENS
     sw a1, 0(t0)                                        # number of words in vocab
@@ -166,82 +166,82 @@ main:
     # Convert input tokens to indices
     ###########################################################################
     # TODO
-    la a0, INPUT_INDICES_VECTOR                         #
-    la a2, INPUT_BUFFER                                 #
-    la a3, VOCAB_BUFFER                                 #
+    la a0, INPUT_INDICES_VECTOR                         # indices vector adress
+    la a2, INPUT_BUFFER                                 # input buffer adress
+    la a3, VOCAB_BUFFER                                 # vocab buffer adress
 
-    jal tokens_to_indices                               #
+    jal tokens_to_indices                               # convert the input tokens to vocab indices
 
-    la t0, INPUT_TOTAL_TOKENS
-    sw a1, 0(t0)                                        # number of words in vocab
+    la t0, INPUT_TOTAL_TOKENS                           # total number of words in input adress
+    sw a1, 0(t0)                                        # number of words in input
 
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
     # TODO
-    la a0, INPUT_EMBEDDINGS_MATRIX                      #
-    la a1, VOCAB_EMBEDDINGS_MATRIX                      #
-    la a2, INPUT_INDICES_VECTOR                         #
-    lw a3, INPUT_TOTAL_TOKENS                           #
+    la a0, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
+    la a1, VOCAB_EMBEDDINGS_MATRIX                      # vocab embeddings matrix adress
+    la a2, INPUT_INDICES_VECTOR                         # indices vector
+    lw a3, INPUT_TOTAL_TOKENS                           # number of words in input
 
-    jal build_input_embeddings_matrix                   #
+    jal build_input_embeddings_matrix                   # build the input embeddings matrix
 
     ###########################################################################
     # Build matrix Q
     ###########################################################################
     # TODO
-    la a0, Q_MATRIX                                     #
-    la a1, INPUT_EMBEDDINGS_MATRIX                      #
-    lw a2, INPUT_TOTAL_TOKENS                           #
-    li a3, CONST_DIMENSION                              #
-    la a4, W_Q_MATRIX                                   #
-    li a5, CONST_DIMENSION                              #
-    li a6, CONST_DIMENSION                              #
+    la a0, Q_MATRIX                                     # Q matrix adress
+    la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
+    lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of Q
+    li a3, CONST_DIMENSION                              # number of columns of Q (in general, 4)
+    la a4, W_Q_MATRIX                                   # W_q matrix adress
+    li a5, CONST_DIMENSION                              # number of rows of W_q (in general, 4)
+    li a6, CONST_DIMENSION                              # number of columns of W_q (in general, 4)
 
-    jal matrix_multiply
+    jal matrix_multiply                                 # build Q matrix
 
     ###########################################################################
     # Build matrix K
     ###########################################################################
     # TODO
-    la a0, K_MATRIX                                     #
-    la a1, INPUT_EMBEDDINGS_MATRIX                      #
-    lw a2, INPUT_TOTAL_TOKENS                           #
-    li a3, CONST_DIMENSION                              #
-    la a4, W_K_MATRIX                                   #
-    li a5, CONST_DIMENSION                              #
-    li a6, CONST_DIMENSION                              #
+    la a0, K_MATRIX                                     # K matrix adress
+    la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
+    lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of K
+    li a3, CONST_DIMENSION                              # number of columns in K (in general, 4)
+    la a4, W_K_MATRIX                                   # W_k matrix adress
+    li a5, CONST_DIMENSION                              # number of rows of W_k (in general, 4)
+    li a6, CONST_DIMENSION                              # number of columns of W_k (in general, 4)
 
-    jal matrix_multiply
+    jal matrix_multiply                                 # build K matrix
 
     ###########################################################################
     # Build matrix V
     ###########################################################################
     # TODO
-    la a0, V_MATRIX                                     #
-    la a1, INPUT_EMBEDDINGS_MATRIX                      #
-    lw a2, INPUT_TOTAL_TOKENS                           #
-    li a3, CONST_DIMENSION                              #
-    la a4, W_V_MATRIX                                   #
-    li a5, CONST_DIMENSION                              #
-    li a6, CONST_DIMENSION                              #
+    la a0, V_MATRIX                                     # V matrix adress
+    la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
+    lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of V
+    li a3, CONST_DIMENSION                              # number of columns in V (in general, 4)
+    la a4, W_V_MATRIX                                   # W_v matrix adress
+    li a5, CONST_DIMENSION                              # number of rows of W_v (in general, 4)
+    li a6, CONST_DIMENSION                              # number of columns of W_v (in general, 4) 
 
-    jal matrix_multiply
+    jal matrix_multiply                                 # build V matrix
      
     ###########################################################################
     # Compute scores for the last input token
     ###########################################################################
     # TODO
-    la a0, SCORES_VECTOR                                #
-    la a1, Q_MATRIX                                     #
-    la a2, K_MATRIX                                     #
-    lw a3, INPUT_TOTAL_TOKENS                           #
-    li a4, CONST_DIMENSION                              #
-    lw a5, INPUT_TOTAL_TOKENS                           #
+    la a0, SCORES_VECTOR                                # scores vector adress
+    la a1, Q_MATRIX                                     # Q matrix adress
+    la a2, K_MATRIX                                     # K matrix adress
+    lw a3, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of Q and K
+    li a4, CONST_DIMENSION                              # number of coluns of Q and K (in general, 4)
+    lw a5, INPUT_TOTAL_TOKENS                           # number of words in the input = last index + 1
 
-    addi a5, a5, -1                                     #
+    addi a5, a5, -1                                     # correct value of last index
 
-    jal compute_scores                                  #
+    jal compute_scores                                  # build the scores vector
     
     ###########################################################################
     # Get the highest score index using argmax
@@ -251,18 +251,18 @@ main:
     la a1, SCORES_VECTOR                                # pointer to the scores vector
     lw a2, INPUT_TOTAL_TOKENS                           # length of the scores vector
 
-    jal argmax                                          # call to argmax function, result in a0 and a1
+    jal argmax                                          # call to argmax function, result in a0 and a1 -> choose the highest value
     
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
     # TODO\
-    mv a4, a1
-    la a1, V_MATRIX                                     #
-    lw a2, INPUT_TOTAL_TOKENS                              #
-    li a3, CONST_DIMENSION
+    mv a4, a1                                           # prepare arguments to select_vector_in_matrix: target row
+    la a1, V_MATRIX                                     # V matrix adress
+    lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows V
+    li a3, CONST_DIMENSION                              # number of columns of V (in general, 4) 
     
-    jal select_vector_in_matrix                         #
+    jal select_vector_in_matrix                         # Select the chosen vector
 
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
@@ -271,11 +271,12 @@ main:
     la a1, VOCAB_EMBEDDINGS_MATRIX                      # pointer to the vocab embeddings matrix
     lw a2, VOCAB_TOTAL_TOKENS                           # number of tokens in the vocabulary
 
-    jal decide_next_token                             # call to decide_next_token function
+    jal decide_next_token                               # call to decide_next_token function
 
-    mv a1, a0
-    la a0, VOCAB_BUFFER
-    jal indices_to_tokens
+    mv a1, a0                                           # prepare arguments: index of the predicted token
+    la a0, VOCAB_BUFFER                                 # vocab buffer adress
+    
+    jal indices_to_tokens                               # convert the indice of the predicted token to a pointer to the predicted token
     
     jal print_predicted_token                           # print the predicted token
 
@@ -307,10 +308,10 @@ open:
 
 read:
     lw a1, 12(sp)                                       # load from memory the buffer adress
-    lw a2, 8(sp)                                        # load from memory max number of bits
+    lw a2, 8(sp)                                        # load from memory max number of byts
     sw a0, 0(sp)                                        # save on memory the file descriptor
     li a7, CONST_SYSCALL_READ                           # read file service code
-    ecall                                               # call to the system, a0 is now the real number of read bites
+    ecall                                               # call to the system, a0 is now the real number of read byts
 
 close:
     mv t1, a0                                           # copy the number of read bytes
@@ -343,7 +344,7 @@ loop_parse_matrix_buffer:
     lb t5, 0(a1)                                        # load of the current byte from the buffer
 
     li t6, CONST_CHAR_SPACE                             # ASCII code to ' '
-    beq t5, t6, new_collum                              # if the byte represents ' ', skip to next byte
+    beq t5, t6, new_collum                              # if the byte represents ' ', process next column
 
     li t6, CONST_CHAR_NEWLINE                           # ASCII code to '\n'
     beq t5, t6, new_row                                 # if the byte represents '\n', increase the rows counter
@@ -352,7 +353,7 @@ loop_parse_matrix_buffer:
     beq t5, t6, loop_parse_matrix_buffer_end            # if the byte represents 'EOF' it's the last element
 
     li t6, CONST_CHAR_HYPHEN                            # ASCII code to '-'
-    bne t5, t6, calc_new_digit                          # jumo to the calculus of the updated integer
+    bne t5, t6, calc_new_digit                          # jump to the calculus of the updated integer
     addi t4, t4, -1                                     # the integer is negative
 
     addi a1, a1, 1                                      # next byte
@@ -374,7 +375,7 @@ new_collum:
 
 new_integer:
     sw t1, 0(t3)                                        # filling the matrix with the integer
-    mv t1, zero                                         # restart curent integer to 0
+    mv t1, zero                                         # restart current integer to 0
     addi t3, t3, 4                                      # next word space
     addi a1, a1, 1                                      # next byte
     j loop_parse_matrix_buffer
@@ -426,13 +427,16 @@ end_of_input:
 
 end_of_word:
     slli t1, t0, 2                                      # calculate the offset
-    add t1, t1, a0                                      # pointer to the correct inidice to fill
-    sw t3, 0(t1)                                        # write the indice in the vector
+
+    add t1, t1, a0                                      # pointer to the correct index to fill
+    sw t3, 0(t1)                                        # write the index in the vector
+
     addi t0, t0, 1                                      # increase the number of computed words
     mv t3, zero                                         # restart the vocab word index
     addi t2, t2, 1                                      # next input byte
     mv a2, t2                                           # start at next input word
     mv t1, a3                                           # start at the vocab starting point
+    
     j loop_tokens_to_indices
 
 not_equal_characters:
@@ -464,8 +468,8 @@ indices_loop:
     addi a2, a2, 4                                      # next index
 
 calc_adress:
-    slli t2, t2, 4                                      # index * (collums * 4)
-    add t2, t2, a1                                      # final adress (base adress + offset)
+    slli t2, t2, 4                                      # index * (columns * 4)
+    add t2, t2, a1                                      # final adress (base address + offset)
 
 copy_values_to_adress:
     lw t3, 0(t2)                                        # load first value of vocab embeddings
@@ -518,7 +522,7 @@ matrix_multiply:
     mv s7, s2                                           # make a triplicate of the output matrix address
     mv s8, a6                                           # make a duplicate of the number of columns of the B matrix
     mv s9, a3                                           # make a duplicate of the number of columns of the A matrix
-    mv s11, a4                                          # make a triplicate of the address of the  B matrix 
+    mv s11, a4                                          # make a triplicate of the address of the B matrix 
     
     slli s10, s8, 2                                     # calculate the memory jump to the next row of B
 
@@ -591,10 +595,10 @@ end_matrix_multiply:
 compute_scores:
     # TODO
     slli t0, a4, 2                                      # size, in bytes, of one line (number_of_columns * 4)
-    mul t0, t0, a5                                      # total offset (line_size * number_of_lines)
-    add t0, t0, a1                                     # updated pointer to target in Q matrix
+    mul t0, t0, a5                                      # total offset (line_size * target_token_index)
+    add t0, t0, a1                                      # updated pointer to target in Q matrix
 
-    addi sp, sp, -32                                    # reserve space on the stack for 9 words
+    addi sp, sp, -32                                    # reserve space on the stack for 8 words
     sw s0, 28(sp)                                       # store previous s0 in the stack
     sw s1, 24(sp)                                       # store previous s1 in the stack
     sw s2, 20(sp)                                       # store previous s2 in the stack
@@ -615,7 +619,7 @@ compute_scores:
 compute_scores_loop:
     beq s6, s2, compute_scores_end                      # we have computed the entire matrix
     
-    mv a1, s5                                           # prepare argument a1 for the dot funtion
+    mv a1, s5                                           # prepare argument a1 for the dot function
     mv a2, s1                                           # prepare argument a2 for dot function
     mv a3, s3                                           # prepare argument a3 for the dot function
     
@@ -641,7 +645,8 @@ compute_scores_end:
     lw s5, 8(sp)                                        # loads previous s5 from the stack
     lw s6, 4(sp)                                        # loads previous s6 from the stack
     lw ra, 0(sp)                                        # loads return address on the stack
-    addi sp, sp, 32                                     # free space on the stack for 9 words
+    
+    addi sp, sp, 32                                     # free space on the stack for 8 words
 
     jr ra                                               # return
 
@@ -663,7 +668,7 @@ select_vector_in_matrix:
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
     # TODO
-    addi sp, sp, -32                                    # reserve space on the stack for 9 words
+    addi sp, sp, -32                                    # reserve space on the stack for 8 words
     sw s0, 28(sp)                                       # store previous s0 in the stack
     sw s1, 24(sp)                                       # store previous s1 in the stack
     sw s2, 20(sp)                                       # store previous s2 in the stack
@@ -681,7 +686,7 @@ decide_next_token:
 
     li s6, 1                                            # number of computed embeddings
 
-decide_next_token_initialiation:
+decide_next_token_initialization:
     mv a1, s0                                           # prepare arguments for dot
     mv a2, s1                                           # prepare arguments for dot
     mv a3, s3                                           # prepare arguments for dot
@@ -692,7 +697,7 @@ decide_next_token_initialiation:
     mv s5, zero                                         # current index of max value
 
 decide_next_token_embeddings_loop:
-    beq s6, s2, decide_next_token_end                   # we've computed all the embeddigs vector
+    beq s6, s2, decide_next_token_end                   # we've computed all the embeddings vector
     
     slli t0, s3, 2                                      # number_of_columns * 4
     add s1, t0, s1                                      # previous_pointer + offset = new_base
@@ -723,7 +728,8 @@ decide_next_token_end:
     lw s5, 8(sp)                                        # loads previous s5 from the stack
     lw s6, 4(sp)                                        # loads previous s6 from the stack
     lw ra, 0(sp)                                        # loads return address on the stack
-    addi sp, sp, 32                                     # free space on the stack for 9 words
+
+    addi sp, sp, 32                                     # free space on the stack for 8 words
 
     jr ra                                               # return
 
@@ -732,34 +738,34 @@ decide_next_token_end:
 #############################################################################################################
 # Aux
 #############################################################################################################
-# (in / out)  a0: pointer to int array
-# (in)  a1: index target
-
+# Converts the predicted token index into a pointer to the start of that token in the vocabulary.
+# (in / out) a0: pointer to vocabulary buffer (char*)
+# (in)  a1: target index of the predicted token (int)
 indices_to_tokens:
     #TODO
-    beq a1, zero, indices_to_tokens_end
-    li t0, 0                                        #contador
-    li t1, CONST_CHAR_NEWLINE
+    beq a1, zero, indices_to_tokens_end                 # if the target index is 0, the first word starts at the beginning of the buffer
+    mv t0, 0                                            # counter of newlines encountered
+    li t1, CONST_CHAR_NEWLINE                           # ASCII code to '\n'
 
 loop_indices_to_tokens:
-    lb t2, 0(a0)
+    lb t2, 0(a0)                                        # load current vocabulary character
     
-    beq t2, t1, increase_char_newline
+    beq t2, t1, increase_char_newline                   # if character is '\n', we found a word boundary
 
-    j loop_indices_to_tokens_end
+    j loop_indices_to_tokens_end                        # if it's a regular character, skip to next byte
 
 increase_char_newline:
-    addi t0, t0, 1
+    addi t0, t0, 1                                      # increment the newline counter
     
 loop_indices_to_tokens_end:
-    addi a0, a0, 1
+    addi a0, a0, 1                                      # advance vocabulary pointer to next byte
 
-    beq a1, t0, indices_to_tokens_end
+    beq a1, t0, indices_to_tokens_end                   # if number of newlines equals target index, we reached the word
 
-    j loop_indices_to_tokens
+    j loop_indices_to_tokens                            # continue traversing the vocabulary buffer
 
 indices_to_tokens_end:
-    jr ra
+    jr ra                                               # return
 
 
 #############################################################################################################
