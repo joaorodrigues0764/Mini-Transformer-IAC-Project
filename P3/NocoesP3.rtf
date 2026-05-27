@@ -243,13 +243,34 @@ Mapeamento dos Sinais no Logisism:\
 \'97Mapeamento sinal SinalALU:\
 \
 \'97> Igual ao opcode da instru\'e7\'e3o.\
+\
+\
+
+\f2\b Constru\'e7\'e3o da ALU:
+\f3\b0 \
+\
+\'97 Estrutura Interna:\
+\
+\'97> Blocos de C\'e1lculo Internos.\
+\'97> Sele\'e7\'e3o do Resultado Final e \'93devia\'94 da 
+\f5\i dota
+\f3\i0 .\
 
 \f2\b \
-\
 
-\f1\b0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\f3\b0 \'97 Blocos de C\'e1lculo Internos:\
 \
+\'97> Bloco de Passagem: Para a instru\'e7\'e3o li.\
+\'97> Somador Simples (16 bits): Para instru\'e7\'e3o add.\
+\'97> Bloco de Produto Escalar: Para dot e dota \'97 2 multiplicadores de 16 bits e 1 somador de 16 bits\
 \
+\'97 \outl0\strokewidth0 Sele\'e7\'e3o do Resultado Final e \'93devia\'94 da 
+\f5\i dota:\
 \
+\'97> 
+\f3\i0 Como tudo ocorre em paralelo, \'e9 preciso um multiplexador final de 4 para 1 (16 bits) \'97 controlado pelo SinalALU (2 bits) para escolher qual resultado sai da ALU:\
 \
-}
+	\'97> Entrada 00, li \'97 valor do bloco de passagem\
+	\'97> Entrada 01, add \'97 valor do somador simples\
+	\'97> Entrada 10, dot \'97 valor do bloco de produto escalar\
+	\'97> Entrada 11, dota \'97 valor do bloco de produto escalar + acumulador}
