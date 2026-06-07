@@ -8,10 +8,10 @@ The architecture defines four fundamental instructions. The operation code (opco
 
 | Instruction | 16-bit Structure | Usage Example | Machine Code (Bin / Hex) |
 | :--- | :--- | :--- | :--- |
-| `li rd, imm` | `imm[11] rd[3] 00` | `li R1, 5` | `00000000101 001 00` / `0x0014` |
+| `li rd, imm` | `imm[11] rd[3] 00` | `li R1, 5` | `00000000101 001 00` / `0x00A4` |
 | `add rd, rs1` | `0[8] rs1[3] rd[3] 01` | `add R2, R1` | `00000000 001 010 01` / `0x0029` |
 | `dot rd, rs1` | `0[8] rs1[3] rd[3] 10` | `dot R0, R2` | `00000000 010 000 10` / `0x0042` |
-| `dota rd, rs1, rs2` | `0[5] rs2[3] rs1[3] rd[3] 11` | `dota R0, R1, R3` | `00000 011 001 000 11` / `0x018B` |
+| `dota rd, rs1, rs2` | `0[5] rs2[3] rs1[3] rd[3] 11` | `dota R0, R1, R3` | `00000 011 001 000 11` / `0x0323` |
 
 ## 2. Design Decisions Justification
 
