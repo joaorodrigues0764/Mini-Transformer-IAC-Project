@@ -18,7 +18,7 @@ if not RARS_PATH:
         RARS_PATH = os.path.abspath(candidate)
 
 if not RARS_PATH:
-    print("❌ Erro: rars.jar não foi encontrado.")
+    print("❌ Error: rars.jar was not found.")
     sys.exit(1)
 
 TEMPLATE_PATH = os.path.abspath("p2-template.s")
@@ -80,7 +80,7 @@ def run_rars(file_path):
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if result.returncode != 0 and "Program terminated by calling exit" not in result.stdout:
-        return None, None, f"Erro RARS:\n{result.stderr}\n{result.stdout}"
+        return None, None, f"RARS Error:\n{result.stderr}\n{result.stdout}"
         
     a0_val = None
     a1_val = None
@@ -97,7 +97,7 @@ def run_rars(file_path):
 
 def create_temp_assembly(test_assembly_prefix):
     if not os.path.exists(TEMPLATE_PATH):
-        raise FileNotFoundError(f"Ficheiro {TEMPLATE_PATH} não encontrado.")
+        raise FileNotFoundError(f"File {TEMPLATE_PATH} not found.")
         
     with open(TEMPLATE_PATH, "r") as f:
         template_content = f.read()
@@ -113,7 +113,7 @@ def create_temp_assembly(test_assembly_prefix):
 
 {processed_prefix}
 
-# --- INÍCIO DO CÓDIGO DO PROJETO 2 ---
+# --- START OF PROJECT 2 CODE ---
 {modified_content}
 """
     with open(TEMP_TEST_PATH, "w") as f:
@@ -121,7 +121,7 @@ def create_temp_assembly(test_assembly_prefix):
 
 def create_temp_p2_assembly():
     if not os.path.exists(TEMPLATE_PATH):
-        raise FileNotFoundError(f"Ficheiro {TEMPLATE_PATH} não encontrado.")
+        raise FileNotFoundError(f"File {TEMPLATE_PATH} not found.")
         
     with open(TEMPLATE_PATH, "r") as f:
         content = f.read()
@@ -145,7 +145,7 @@ class TestRunner:
         
         if a0 is None or a1 is None:
             print(f"❌ FAILED: {test_name}")
-            print(f"    Erro ao executar RARS:\n{out}")
+            print(f"    Error executing RARS:\n{out}")
             self.failed += 1
             return
             
@@ -155,27 +155,27 @@ class TestRunner:
         else:
             print(f"❌ FAILED: {test_name}")
             if expected_a0 == 0:
-                print(f"    Esperado (a0, a1): {(expected_a0, expected_a1)}")
+                print(f"    Expected (a0, a1): {(expected_a0, expected_a1)}")
             else:
-                print(f"    Esperado (a0):     {expected_a0}")
-            print(f"    Obtido (a0, a1):   {(a0, a1)}")
+                print(f"    Expected (a0):     {expected_a0}")
+            print(f"    Got (a0, a1):      {(a0, a1)}")
             self.failed += 1
 
 def main():
     runner = TestRunner()
 
     print("="*60)
-    print("   TESTANDO FUNÇÕES INDIVIDUAIS (UNIT TESTS) - PROJETO 2")
+    print("   TESTING INDIVIDUAL FUNCTIONS (UNIT TESTS) - PROJECT 2")
     print("="*60)
 
     # ----------------------------------------------------
-    # 1. TESTES UNITÁRIOS: dot
+    # 1. UNIT TESTS: dot
     # ----------------------------------------------------
-    print("\n--- Testando dot ---")
+    print("\n--- Testing dot ---")
     
-    # 1.1 Produto Escalar Normal
+    # 1.1 Normal Dot Product
     runner.assert_eq(
-        "dot: Produto Escalar Normal",
+        "dot: Normal Dot Product",
         """.data
 test_v1: .word 1, 2, 3
 test_v2: .word 4, 5, 6
@@ -190,9 +190,9 @@ main:
         0, 32
     )
 
-    # 1.2 Valores negativos normais
+    # 1.2 Normal negative values
     runner.assert_eq(
-        "dot: Valores negativos",
+        "dot: Negative values",
         """.data
 test_v1: .word -1, -2, -3
 test_v2: .word 4, 5, 6
@@ -207,9 +207,9 @@ main:
         0, -32
     )
 
-    # 1.3 Tamanho inválido (< 1)
+    # 1.3 Invalid size (< 1)
     runner.assert_eq(
-        "dot: Erro tamanho < 1",
+        "dot: Error size < 1",
         """.text
 main:
   li a1, 0
@@ -221,9 +221,9 @@ main:
         50, -1
     )
 
-    # 1.4 Overflow de multiplicação
+    # 1.4 Multiplication overflow
     runner.assert_eq(
-        "dot: Overflow multiplicação",
+        "dot: Multiplication overflow",
         """.data
 test_v1: .word 50000
 test_v2: .word 50000
@@ -239,13 +239,13 @@ main:
     )
 
     # ----------------------------------------------------
-    # 2. TESTES UNITÁRIOS: argmax
+    # 2. UNIT TESTS: argmax
     # ----------------------------------------------------
-    print("\n--- Testando argmax ---")
+    print("\n--- Testing argmax ---")
     
-    # 2.1 Argmax Normal
+    # 2.1 Normal Argmax
     runner.assert_eq(
-        "argmax: Busca Normal",
+        "argmax: Normal Search",
         """.data
 test_v: .word 1, 5, 3, 2
 .text
@@ -258,9 +258,9 @@ main:
         0, 1
     )
 
-    # 2.2 Argmax com empates (retorna menor índice)
+    # 2.2 Argmax with ties (returns lowest index)
     runner.assert_eq(
-        "argmax: Caso de empate",
+        "argmax: Tie case",
         """.data
 test_v: .word 1, 5, 3, 5, 2
 .text
@@ -273,9 +273,9 @@ main:
         0, 1
     )
 
-    # 2.3 Tamanho inválido (< 1)
+    # 2.3 Invalid size (< 1)
     runner.assert_eq(
-        "argmax: Erro tamanho < 1",
+        "argmax: Error size < 1",
         """.data
 test_v: .word 1
 .text
@@ -289,13 +289,13 @@ main:
     )
 
     # ----------------------------------------------------
-    # 3. TESTES UNITÁRIOS: indices_to_tokens
+    # 3. UNIT TESTS: indices_to_tokens
     # ----------------------------------------------------
-    print("\n--- Testando indices_to_tokens ---")
+    print("\n--- Testing indices_to_tokens ---")
     
-    # 3.1 Converter índice 2 em palavra
+    # 3.1 Convert index 2 to word
     runner.assert_eq(
-        "indices_to_tokens: Acesso a índice normal",
+        "indices_to_tokens: Normal index access",
         """.data
 test_vocab: .string "the\\na\\ncat\\ndog\\n"
 .text
@@ -319,17 +319,17 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 4. TESTES UNITÁRIOS: read_file
+    # 4. UNIT TESTS: read_file
     # ----------------------------------------------------
-    print("\n--- Testando read_file ---")
+    print("\n--- Testing read_file ---")
     
-    # Escrever um ficheiro temporário para leitura
+    # Write a temporary file for reading
     test_file_path = "test_read.txt"
     with open(test_file_path, "w") as f:
         f.write("Hello RISC-V!")
 
     runner.assert_eq(
-        "read_file: Leitura normal",
+        "read_file: Normal read",
         f""".data
 test_filename: .string "{test_file_path}"
 test_buffer:   .zero 32
@@ -341,9 +341,9 @@ main:
   jal ra, read_file
   la t0, test_buffer
   lw t1, 0(t0)        # "Hell"
-  li t2, 0x6c6c6548    # "Hell" em Little Endian
+  li t2, 0x6c6c6548    # "Hell" in Little Endian
   bne t1, t2, fail
-  mv a1, a0            # Passar o número de bytes lidos em a1
+  mv a1, a0            # Pass the number of read bytes in a1
   li a0, 0
   j exit
 fail:
@@ -359,12 +359,12 @@ exit:
         os.remove(test_file_path)
 
     # ----------------------------------------------------
-    # 5. TESTES UNITÁRIOS: parse_matrix_buffer
+    # 5. UNIT TESTS: parse_matrix_buffer
     # ----------------------------------------------------
-    print("\n--- Testando parse_matrix_buffer ---")
+    print("\n--- Testing parse_matrix_buffer ---")
     
     runner.assert_eq(
-        "parse_matrix_buffer: Matriz com inteiros e negativos",
+        "parse_matrix_buffer: Matrix with integers and negatives",
         """.data
 test_buffer: .string "-5 -3\\n6 -1\\n"
 test_matrix: .zero 16
@@ -389,7 +389,7 @@ main:
   bne t4, t5, fail
   
   li a0, 0
-  # a1 já contém as linhas da matriz (deve ser 2)
+  # a1 already contains the matrix rows (should be 2)
   j exit
 fail:
   li a0, 1
@@ -401,12 +401,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 6. TESTES UNITÁRIOS: tokens_to_indices
+    # 6. UNIT TESTS: tokens_to_indices
     # ----------------------------------------------------
-    print("\n--- Testando tokens_to_indices ---")
+    print("\n--- Testing tokens_to_indices ---")
     
     runner.assert_eq(
-        "tokens_to_indices: Tradução de palavras para índices",
+        "tokens_to_indices: Translation of words to indices",
         """.data
 test_vocab:  .string "the\\na\\ncat\\ndog\\n"
 test_input:  .string "a\\ndog\\n"
@@ -418,8 +418,8 @@ main:
   la a3, test_vocab
   jal ra, tokens_to_indices
   la t0, test_indices
-  lw t1, 0(t0) # índice de "a" -> 1
-  lw t2, 4(t0) # índice de "dog" -> 3
+  lw t1, 0(t0) # index of "a" -> 1
+  lw t2, 4(t0) # index of "dog" -> 3
   
   li t3, 1
   bne t1, t3, fail
@@ -427,7 +427,7 @@ main:
   bne t2, t3, fail
   
   li a0, 0
-  # a1 já contém o tamanho (deve ser 2)
+  # a1 already contains the size (should be 2)
   j exit
 fail:
   li a0, 1
@@ -439,12 +439,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 7. TESTES UNITÁRIOS: build_input_embeddings_matrix
+    # 7. UNIT TESTS: build_input_embeddings_matrix
     # ----------------------------------------------------
-    print("\n--- Testando build_input_embeddings_matrix ---")
+    print("\n--- Testing build_input_embeddings_matrix ---")
     
     runner.assert_eq(
-        "build_input_embeddings_matrix: Construção da matriz",
+        "build_input_embeddings_matrix: Matrix construction",
         """.data
 test_vocab_emb: .word 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
 test_indices:   .word 2, 0
@@ -504,12 +504,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 8. TESTES UNITÁRIOS: matrix_multiply
+    # 8. UNIT TESTS: matrix_multiply
     # ----------------------------------------------------
-    print("\n--- Testando matrix_multiply ---")
+    print("\n--- Testing matrix_multiply ---")
     
     runner.assert_eq(
-        "matrix_multiply: Multiplicação 2x3 por 3x2",
+        "matrix_multiply: Multiplication 2x3 by 3x2",
         """.data
 test_A: .word 1, 2, 3, 4, 5, 6
 test_B: .word 7, 8, 9, 10, 11, 12
@@ -553,12 +553,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 9. TESTES UNITÁRIOS: compute_scores
+    # 9. UNIT TESTS: compute_scores
     # ----------------------------------------------------
-    print("\n--- Testando compute_scores ---")
+    print("\n--- Testing compute_scores ---")
     
     runner.assert_eq(
-        "compute_scores: Cálculo de scores de atenção",
+        "compute_scores: Attention scores calculation",
         """.data
 test_Q: .word 1, 2, 3, 4, 5, 6
 test_K: .word 7, 8, 9, 10, 11, 12
@@ -595,12 +595,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 10. TESTES UNITÁRIOS: select_vector_in_matrix
+    # 10. UNIT TESTS: select_vector_in_matrix
     # ----------------------------------------------------
-    print("\n--- Testando select_vector_in_matrix ---")
+    print("\n--- Testing select_vector_in_matrix ---")
     
     runner.assert_eq(
-        "select_vector_in_matrix: Seleção de linha",
+        "select_vector_in_matrix: Row selection",
         """.data
 test_matrix: .word 1, 2, 3, 4, 5, 6, 7, 8
 .text
@@ -627,12 +627,12 @@ exit:
     )
 
     # ----------------------------------------------------
-    # 11. TESTES UNITÁRIOS: decide_next_token
+    # 11. UNIT TESTS: decide_next_token
     # ----------------------------------------------------
-    print("\n--- Testando decide_next_token ---")
+    print("\n--- Testing decide_next_token ---")
     
     runner.assert_eq(
-        "decide_next_token: Escolha do token mais similar",
+        "decide_next_token: Choice of the most similar token",
         """.data
 test_target:    .word 2, -1, 3, 0
 test_vocab_emb: .word 1, 1, 1, 1, 3, -2, 1, 0, -1, 0, 1, 5
@@ -654,10 +654,10 @@ main:
         os.remove(TEMP_TEST_PATH)
 
     # ----------------------------------------------------
-    # 12. TESTES DE INTEGRAÇÃO (END-TO-END FLOW)
+    # 12. INTEGRATION TESTS (END-TO-END FLOW)
     # ----------------------------------------------------
     print("\n" + "="*60)
-    print("   TESTANDO FLUXO COMPLETO (INTEGRATION TESTS)")
+    print("   TESTING FULL FLOW (INTEGRATION TESTS)")
     print("="*60)
 
     # Create temporary p2-template.s with preprocessed expressions so RARS can compile it
@@ -696,7 +696,7 @@ main:
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode != 0 and "Program terminated by calling exit" not in result.stdout:
-                print(f"❌ INTEGRATION FAILED {idx}: {' '.join(words)} -> Erro ao executar RARS:\n{result.stderr}")
+                print(f"❌ INTEGRATION FAILED {idx}: {' '.join(words)} -> Error executing RARS:\n{result.stderr}")
                 integration_failed += 1
                 continue
                 
@@ -718,8 +718,8 @@ main:
                 integration_passed += 1
             else:
                 print(f"❌ INTEGRATION FAILED {idx}: {' '.join(words)}")
-                print(f"    Esperado: {expected}")
-                print(f"    Obtido:   {predicted_word}")
+                print(f"    Expected: {expected}")
+                print(f"    Got:      {predicted_word}")
                 integration_failed += 1
 
     finally:
@@ -735,16 +735,16 @@ main:
             os.remove(TEMP_P2_PATH)
 
     # ----------------------------------------------------
-    # RESUMO GERAL
+    # GENERAL SUMMARY
     # ----------------------------------------------------
     print("\n" + "="*60)
-    print("   RESUMO DOS TESTES DO PROJETO 2")
+    print("   PROJECT 2 TEST SUMMARY")
     print("="*60)
     total_passed = runner.passed + integration_passed
     total_failed = runner.failed + integration_failed
-    print(f"Unit Tests:  {runner.passed} passaram, {runner.failed} falharam.")
-    print(f"Integration: {integration_passed} passaram, {integration_failed} falharam.")
-    print(f"Total Geral: {total_passed} passaram, {total_failed} falharam.")
+    print(f"Unit Tests:  {runner.passed} passed, {runner.failed} failed.")
+    print(f"Integration: {integration_passed} passed, {integration_failed} failed.")
+    print(f"General Total: {total_passed} passed, {total_failed} failed.")
     print("="*60)
 
     if total_failed > 0:

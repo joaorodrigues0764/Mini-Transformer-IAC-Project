@@ -11,7 +11,7 @@ def run_rars(file_path):
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if result.returncode != 0 and "Program terminated by calling exit" not in result.stdout:
-        return None, None, f"Erro RARS:\n{result.stderr}\n{result.stdout}"
+        return None, None, f"RARS Error:\n{result.stderr}\n{result.stdout}"
         
     a0_val = None
     a1_val = None
@@ -109,8 +109,8 @@ class TestRunner:
                 self.passed += 1
             else:
                 print(f"❌ FAILED: {test_name}")
-                print(f"    Esperado Status: {expected_status}")
-                print(f"    Obtido Status:   {got_status}")
+                print(f"    Expected Status: {expected_status}")
+                print(f"    Got Status:      {got_status}")
                 self.failed += 1
         else:
             if got_status == expected_status and got_res == expected_res:
@@ -118,8 +118,8 @@ class TestRunner:
                 self.passed += 1
             else:
                 print(f"❌ FAILED: {test_name}")
-                print(f"    Esperado (Status, Res): {expected}")
-                print(f"    Obtido (Status, Res):   {(got_status, got_res)}")
+                print(f"    Expected (Status, Res): {expected}")
+                print(f"    Got (Status, Res):      {(got_status, got_res)}")
                 self.failed += 1
 
 def extract_func(filename, func_name):
@@ -141,47 +141,47 @@ def main():
     
     if code_argmax:
         print("="*60)
-        print("   TESTANDO ASSEMBLY: argmax.s")
+        print("   TESTING ASSEMBLY: argmax.s")
         print("="*60)
-        runner.assert_eq("Lista normal", "argmax", (0, 2), code_argmax, [1, 2, 5, 4])
-        runner.assert_eq("Lista com empates", "argmax", (0, 1), code_argmax, [1, 5, 5, 4])
-        runner.assert_eq("Tudo negativo", "argmax", (0, 0), code_argmax, [-1, -2, -5, -4])
-        runner.assert_eq("Erro: Tamanho < 1", "argmax", (50, -1), code_argmax, [])
+        runner.assert_eq("Normal list", "argmax", (0, 2), code_argmax, [1, 2, 5, 4])
+        runner.assert_eq("List with ties", "argmax", (0, 1), code_argmax, [1, 5, 5, 4])
+        runner.assert_eq("All negative", "argmax", (0, 0), code_argmax, [-1, -2, -5, -4])
+        runner.assert_eq("Error: Size < 1", "argmax", (50, -1), code_argmax, [])
         
     if code_select:
         print("\n" + "="*60)
-        print("   TESTANDO ASSEMBLY: select.s")
+        print("   TESTING ASSEMBLY: select.s")
         print("="*60)
-        runner.assert_eq("Acesso normal", "select", (0, 6), code_select, [-6, -1, 6, 1], index=2)
-        runner.assert_eq("Erro: Tamanho < 1", "select", (50, -1), code_select, [], index=0)
-        runner.assert_eq("Erro: Index = Tamanho", "select", (100, -1), code_select, [1, 2, 3], index=3)
-        runner.assert_eq("Erro: Index > Tamanho", "select", (100, -1), code_select, [1, 2], index=5)
+        runner.assert_eq("Normal access", "select", (0, 6), code_select, [-6, -1, 6, 1], index=2)
+        runner.assert_eq("Error: Size < 1", "select", (50, -1), code_select, [], index=0)
+        runner.assert_eq("Error: Index = Size", "select", (100, -1), code_select, [1, 2, 3], index=3)
+        runner.assert_eq("Error: Index > Size", "select", (100, -1), code_select, [1, 2], index=5)
         
-        # RISC-V costuma comparar índices de forma unsigned (bltu) ou signed (blt).
-        # Como no teu ficheiro usas 'bge', ele trata -1 como um número negativo menor que o tamanho,
-        # e portanto um índex negativo acaba por provocar um acesso invãlido de memória.
-        runner.assert_eq("Erro: Index < 0", "select", (100, -1), code_select, [1, 2, 3], index=-1)
+        # RISC-V usually compares indices using unsigned (bltu) or signed (blt).
+        # Since 'bge' is used in your file, it treats -1 as a negative number smaller than the size,
+        # which means a negative index ends up causing an invalid memory access.
+        runner.assert_eq("Error: Index < 0", "select", (100, -1), code_select, [1, 2, 3], index=-1)
 
     if code_dot:
         print("\n" + "="*60)
-        print("   TESTANDO ASSEMBLY: dot.s")
+        print("   TESTING ASSEMBLY: dot.s")
         print("="*60)
-        runner.assert_eq("Produto Escalar Normal", "dot", (0, 32), code_dot, [1, 2, 3], [4, 5, 6])
-        runner.assert_eq("Valores negativos normais", "dot", (0, -32), code_dot, [-1, -2, -3], [4, 5, 6])
-        runner.assert_eq("Erro: Tamanho < 1", "dot", (50, -1), code_dot, [], [])
+        runner.assert_eq("Normal Dot Product", "dot", (0, 32), code_dot, [1, 2, 3], [4, 5, 6])
+        runner.assert_eq("Normal negative values", "dot", (0, -32), code_dot, [-1, -2, -3], [4, 5, 6])
+        runner.assert_eq("Error: Size < 1", "dot", (50, -1), code_dot, [], [])
         
-        runner.assert_eq("Erro 200: Overflow Mult Positiva", "dot", (200, -1), code_dot, [50000], [50000])
-        runner.assert_eq("Erro 200: Overflow Mult Negativa", "dot", (200, -1), code_dot, [50000], [-50000])
-        runner.assert_eq("Erro 200: Overflow INT32_MIN * -1", "dot", (200, -1), code_dot, [INT32_MIN], [-1])
-        runner.assert_eq("Erro 200: Overflow Soma Positiva", "dot", (200, -1), code_dot, [INT32_MAX, 1], [1, 1])
-        runner.assert_eq("Erro 200: Overflow Soma Negativa", "dot", (200, -1), code_dot, [INT32_MIN, -1], [1, 1])
+        runner.assert_eq("Error 200: Positive Mult Overflow", "dot", (200, -1), code_dot, [50000], [50000])
+        runner.assert_eq("Error 200: Negative Mult Overflow", "dot", (200, -1), code_dot, [50000], [-50000])
+        runner.assert_eq("Error 200: INT32_MIN * -1 Overflow", "dot", (200, -1), code_dot, [INT32_MIN], [-1])
+        runner.assert_eq("Error 200: Positive Sum Overflow", "dot", (200, -1), code_dot, [INT32_MAX, 1], [1, 1])
+        runner.assert_eq("Error 200: Negative Sum Overflow", "dot", (200, -1), code_dot, [INT32_MIN, -1], [1, 1])
         
-        print("\n   --- Casos onde o Bug Atual Vai Fazer Falhar ---")
-        runner.assert_eq("Bug Assembly #2: Soma c/ mesmo sinal", "dot", (0, 2), code_dot, [1, 1], [1, 1])
-        runner.assert_eq("Bug Assembly #3: 2+ produtos negativos", "dot", (0, -2), code_dot, [-1, -1], [1, 1])
+        print("\n   --- Cases Where Current Bug Will Fail ---")
+        runner.assert_eq("Assembly Bug #2: Sum w/ same sign", "dot", (0, 2), code_dot, [1, 1], [1, 1])
+        runner.assert_eq("Assembly Bug #3: 2+ negative products", "dot", (0, -2), code_dot, [-1, -1], [1, 1])
 
     print("\n" + "="*60)
-    print(f"Resumo Geral Assembly: {runner.passed} passaram, {runner.failed} falharam.")
+    print(f"General Assembly Summary: {runner.passed} passed, {runner.failed} failed.")
     print("="*60)
     
     if os.path.exists("temp_test.s"):
