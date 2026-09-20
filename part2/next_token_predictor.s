@@ -65,7 +65,7 @@ main:
     ###########################################################################
     # Read vocabulary
     ###########################################################################
-    # TODO
+    
     la a0, VOCABULARY_FILENAME                          # file path
     la a1, VOCAB_BUFFER                                 # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -76,7 +76,7 @@ main:
     ###########################################################################
     # Read input
     ###########################################################################
-    # TODO
+    
     la a0, INPUT_FILENAME                               # file path
     la a1, INPUT_BUFFER                                 # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -86,7 +86,7 @@ main:
     ###########################################################################
     # Read W_Q matrix
     ###########################################################################
-    # TODO
+    
     la a0, W_Q_FILENAME                                 # file path
     la a1, MATRIX_BUFFER                                # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -96,7 +96,7 @@ main:
     ###########################################################################
     # Parse W_Q matrix
     ###########################################################################
-    # TODO
+    
     la a0, W_Q_MATRIX                                   # W_q matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
@@ -105,7 +105,7 @@ main:
     ###########################################################################
     # Read W_K matrix
     ###########################################################################
-    # TODO
+    
     la a0, W_K_FILENAME                                 # file path
     la a1, MATRIX_BUFFER                                # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -115,7 +115,7 @@ main:
     ###########################################################################
     # Parse W_K matrix from buffer
     ###########################################################################
-    # TODO
+    
     la a0, W_K_MATRIX                                   # W_k matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
@@ -124,7 +124,7 @@ main:
     ###########################################################################
     # Read W_V matrix
     ###########################################################################
-    # TODO
+    
     la a0, W_V_FILENAME                                 # file path
     la a1, MATRIX_BUFFER                                # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -134,7 +134,7 @@ main:
     ###########################################################################
     # Parse W_V matrix from buffer
     ###########################################################################
-    # TODO
+    
     la a0, W_V_MATRIX                                   # W_v matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
@@ -143,7 +143,7 @@ main:
     ###########################################################################
     # Read embeddings matrix
     ###########################################################################
-    # TODO
+    
     la a0, EMBEDDINGS_FILENAME                          # file path
     la a1, MATRIX_BUFFER                                # destination buffer
     li a2, CONST_BUFFER_SIZE                            # max number of bytes to read
@@ -153,7 +153,7 @@ main:
     ###########################################################################
     # Parse vocabulary embeddings matrix from buffer
     ###########################################################################
-    # TODO
+    
     la a0, VOCAB_EMBEDDINGS_MATRIX                      # vocab embeddings matrix adress
     la a1, MATRIX_BUFFER                                # matrix data buffer
     
@@ -165,7 +165,7 @@ main:
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
-    # TODO
+    
     la a0, INPUT_INDICES_VECTOR                         # indices vector adress
     la a2, INPUT_BUFFER                                 # input buffer adress
     la a3, VOCAB_BUFFER                                 # vocab buffer adress
@@ -178,7 +178,7 @@ main:
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
-    # TODO
+    
     la a0, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
     la a1, VOCAB_EMBEDDINGS_MATRIX                      # vocab embeddings matrix adress
     la a2, INPUT_INDICES_VECTOR                         # indices vector
@@ -189,7 +189,7 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    # TODO
+    
     la a0, Q_MATRIX                                     # Q matrix adress
     la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
     lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of Q
@@ -203,7 +203,7 @@ main:
     ###########################################################################
     # Build matrix K
     ###########################################################################
-    # TODO
+    
     la a0, K_MATRIX                                     # K matrix adress
     la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
     lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of K
@@ -217,7 +217,7 @@ main:
     ###########################################################################
     # Build matrix V
     ###########################################################################
-    # TODO
+    
     la a0, V_MATRIX                                     # V matrix adress
     la a1, INPUT_EMBEDDINGS_MATRIX                      # input embeddings matrix adress
     lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows of V
@@ -231,7 +231,7 @@ main:
     ###########################################################################
     # Compute scores for the last input token
     ###########################################################################
-    # TODO
+    
     la a0, SCORES_VECTOR                                # scores vector adress
     la a1, Q_MATRIX                                     # Q matrix adress
     la a2, K_MATRIX                                     # K matrix adress
@@ -246,7 +246,7 @@ main:
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    # TODO
+    
     
     la a1, SCORES_VECTOR                                # pointer to the scores vector
     lw a2, INPUT_TOTAL_TOKENS                           # length of the scores vector
@@ -256,7 +256,7 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-    # TODO\
+    
     mv a4, a1                                           # prepare arguments to select_vector_in_matrix: target row
     la a1, V_MATRIX                                     # V matrix adress
     lw a2, INPUT_TOTAL_TOKENS                           # number of words in the input = number of rows V
@@ -267,7 +267,7 @@ main:
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
     ###########################################################################
-    # TODO
+    
     la a1, VOCAB_EMBEDDINGS_MATRIX                      # pointer to the vocab embeddings matrix
     lw a2, VOCAB_TOTAL_TOKENS                           # number of tokens in the vocabulary
 
@@ -283,6 +283,7 @@ main:
     ###########################################################################
     # Terminate program successfully
     ###########################################################################
+
     li a0, 0
     j exit_with_code                                    # Exit with code 0
 
@@ -291,7 +292,7 @@ main:
 # (in / out)  a1: destination buffer
 # (in)  a2: maximum number of bytes to read
 read_file:
-    # TODO
+    
     addi sp, sp, -20                                    # reserve space on the stack for 5 words
     sw a0, 16(sp)                                       # write a0 on memory
     sw a1, 12(sp)                                       # write a1 on memory
@@ -333,7 +334,7 @@ end_read_file:
 # (out) a1: number of rows in the matrix (int)
 # (in)  a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
-    # TODO
+    
     mv t0, zero                                         # rows counter
     mv t1, zero                                         # current integer
     li t2, 10                                           # multiplier
@@ -401,7 +402,7 @@ loop_parse_matrix_buffer_end:
 # (in)  a3: address to vocabulary buffer
 # (out) a1: size of input indices vector (number of tokens in input)
 tokens_to_indices:
-    # TODO
+    
     mv t0, zero                                         # number of words in the input
     mv t1, a3                                           # copy of the vocab buffer pointer
     mv t2, a2                                           # copy of the input buffer pointer
@@ -458,7 +459,7 @@ prepare_new_search:
 # (in)  a2: address of the input indices array (int*)
 # (in)  a3: number of tokens in the input (int)
 build_input_embeddings_matrix:
-    # TODO
+    
     mv t0, zero                                         # current indices vector index
     mv t1, a0                                           # copy output matrix adress
 
@@ -497,7 +498,7 @@ indices_loop_end:
 # (in)  a5: #rows of the second matrix (int)
 # (in)  a6: #columns of the second matrix (int)
 matrix_multiply:
-    # TODO
+    
     addi sp, sp, -52                                    # reserve space on the stack for 13 words
     sw s0, 48(sp)                                       # store previous s0 in the stack
     sw s1, 44(sp)                                       # store previous s1 in the stack
@@ -593,7 +594,7 @@ end_matrix_multiply:
 # (in)  a4: #columns of Q and K (int)
 # (in)  a5: target token index for which we want to compute the score (int)
 compute_scores:
-    # TODO
+    
     slli t0, a4, 2                                      # size, in bytes, of one line (number_of_columns * 4)
     mul t0, t0, a5                                      # total offset (line_size * target_token_index)
     add t0, t0, a1                                      # updated pointer to target in Q matrix
@@ -656,7 +657,7 @@ compute_scores_end:
 # (in)  a3: #cols (int)
 # (in)  a4: target row
 select_vector_in_matrix:
-    # TODO
+    
     slli t0, a3, 2                                      # size, in bytes, of one line (number_of_columns * 4)
     mul t0, t0, a4                                      # total offset (line_size * target row number)
     add a0, a1, t0                                      # return
@@ -667,7 +668,7 @@ select_vector_in_matrix:
 # (in)  a1: vocabulary embeddings address (int*)
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
-    # TODO
+    
     addi sp, sp, -32                                    # reserve space on the stack for 8 words
     sw s0, 28(sp)                                       # store previous s0 in the stack
     sw s1, 24(sp)                                       # store previous s1 in the stack
@@ -742,7 +743,7 @@ decide_next_token_end:
 # (in / out) a0: pointer to vocabulary buffer (char*)
 # (in)  a1: target index of the predicted token (int)
 indices_to_tokens:
-    #TODO
+    
     beq a1, zero, indices_to_tokens_end                 # if the target index is 0, the first word starts at the beginning of the buffer
     mv t0, zero                                         # counter of newlines encountered
     li t1, CONST_CHAR_NEWLINE                           # ASCII code to '\n'

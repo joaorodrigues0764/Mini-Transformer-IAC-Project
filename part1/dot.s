@@ -27,7 +27,6 @@ exit:
 #   a1 = dot product result
 # ===========================================================================
 dot:
-  # TODO: Implement the dot product function here
   li a4, 1                      # minimum array size
   blt a3, a4, invalid_size      # the array size must be equal or greater than 1
   li t0, 0                      # accumulator
@@ -77,4 +76,4 @@ loop_end:
   j end
 
 end:
-  jr ra                           # return to the caller
+  jr ra                         # return to the caller

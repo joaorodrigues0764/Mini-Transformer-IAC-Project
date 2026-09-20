@@ -26,7 +26,6 @@ exit:
 #   a1 = value of the selected element
 # ===========================================================================
 select:
-  # TODO: Implement the select function here
   li t2, 1              # minimum vector size
   blt a2, t2, argInv    # if the size is greater than 1, don't update the code status
   bge a3, a2, outLimit  # cheks if element index > array length
