@@ -25,7 +25,7 @@ exit:
 #   a1 = index of the largest element
 # ===========================================================================
 argmax:
-  li a0, 50               # inicialization of the status code
+  li a0, 50               # initialization of the status code
   li a3, 1                # minimum vector size
   blt a2, a3, argmax_end  # if the size is less than 1, don't update the code status
   li a0, 0                # update of the status code

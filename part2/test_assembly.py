@@ -1,29 +1,14 @@
-import sys
-import subprocess
-import os
 import shutil
+import subprocess
+import sys
+from pathlib import Path
 
-# Dynamic search for rars.jar
-RARS_PATH = None
-for path in ["rars.jar", "../P1_skeleton_v1.1/rars.jar", "P1_skeleton_v1.1/rars.jar"]:
-    if os.path.exists(path):
-        RARS_PATH = os.path.abspath(path)
-        break
-
-if not RARS_PATH:
-    # Search recursively in the parent directories
-    parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    candidate = os.path.join(parent, "P1_skeleton_v1.1", "rars.jar")
-    if os.path.exists(candidate):
-        RARS_PATH = os.path.abspath(candidate)
-
-if not RARS_PATH:
-    print("❌ Error: rars.jar was not found.")
-    sys.exit(1)
-
-TEMPLATE_PATH = os.path.abspath("p2-template.s")
-TEMP_TEST_PATH = os.path.abspath("temp_test.s")
-TEMP_P2_PATH = os.path.abspath("temp_p2.s")
+PART2_DIR = Path(__file__).resolve().parent
+ROOT_DIR = PART2_DIR.parent
+RARS_PATH = ROOT_DIR / "tools" / "rars.jar"
+TEMPLATE_PATH = PART2_DIR / "next_token_predictor.s"
+TEMP_TEST_PATH = PART2_DIR / "temp_test.s"
+TEMP_P2_PATH = PART2_DIR / "temp_p2.s"
 
 EQU_HEADER = """###########################################################################
 # Hoisted Constants for RARS Compilation (.eqv for macro expansion)
@@ -76,8 +61,8 @@ def preprocess_assembly_content(content):
     return '\n'.join(lines)
 
 def run_rars(file_path):
-    cmd = ["java", "-jar", RARS_PATH, "nc", "dec", "a0", "a1", file_path]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    cmd = ["java", "-jar", str(RARS_PATH), "nc", "dec", "a0", "a1", str(file_path)]
+    result = subprocess.run(cmd, cwd=PART2_DIR, capture_output=True, text=True)
     
     if result.returncode != 0 and "Program terminated by calling exit" not in result.stdout:
         return None, None, f"RARS Error:\n{result.stderr}\n{result.stdout}"
@@ -96,10 +81,10 @@ def run_rars(file_path):
     return a0_val, a1_val, result.stdout
 
 def create_temp_assembly(test_assembly_prefix):
-    if not os.path.exists(TEMPLATE_PATH):
+    if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(f"File {TEMPLATE_PATH} not found.")
         
-    with open(TEMPLATE_PATH, "r") as f:
+    with TEMPLATE_PATH.open("r", encoding="utf-8") as f:
         template_content = f.read()
         
     # Replace main: with p2_main: to avoid collision
@@ -116,14 +101,14 @@ def create_temp_assembly(test_assembly_prefix):
 # --- START OF PROJECT 2 CODE ---
 {modified_content}
 """
-    with open(TEMP_TEST_PATH, "w") as f:
+    with TEMP_TEST_PATH.open("w", encoding="utf-8") as f:
         f.write(full_code)
 
 def create_temp_p2_assembly():
-    if not os.path.exists(TEMPLATE_PATH):
+    if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(f"File {TEMPLATE_PATH} not found.")
         
-    with open(TEMPLATE_PATH, "r") as f:
+    with TEMPLATE_PATH.open("r", encoding="utf-8") as f:
         content = f.read()
         
     content = preprocess_assembly_content(content)
@@ -131,7 +116,7 @@ def create_temp_p2_assembly():
     full_code = f"""{EQU_HEADER}
 {content}
 """
-    with open(TEMP_P2_PATH, "w") as f:
+    with TEMP_P2_PATH.open("w", encoding="utf-8") as f:
         f.write(full_code)
 
 class TestRunner:
@@ -162,6 +147,14 @@ class TestRunner:
             self.failed += 1
 
 def main():
+    if not RARS_PATH.exists():
+        print(f"❌ Error: RARS was not found at {RARS_PATH}")
+        sys.exit(1)
+
+    if not TEMPLATE_PATH.exists():
+        print(f"❌ Error: {TEMPLATE_PATH.name} was not found.")
+        sys.exit(1)
+
     runner = TestRunner()
 
     print("="*60)
@@ -325,7 +318,7 @@ exit:
     
     # Write a temporary file for reading
     test_file_path = "test_read.txt"
-    with open(test_file_path, "w") as f:
+    with (PART2_DIR / test_file_path).open("w", encoding="utf-8") as f:
         f.write("Hello RISC-V!")
 
     runner.assert_eq(
@@ -355,8 +348,8 @@ exit:
         0, 13
     )
 
-    if os.path.exists(test_file_path):
-        os.remove(test_file_path)
+    if (PART2_DIR / test_file_path).exists():
+        (PART2_DIR / test_file_path).unlink(missing_ok=True)
 
     # ----------------------------------------------------
     # 5. UNIT TESTS: parse_matrix_buffer
@@ -650,8 +643,8 @@ main:
     )
 
     # Clean up any temporary assembly file
-    if os.path.exists(TEMP_TEST_PATH):
-        os.remove(TEMP_TEST_PATH)
+    if TEMP_TEST_PATH.exists():
+        TEMP_TEST_PATH.unlink(missing_ok=True)
 
     # ----------------------------------------------------
     # 12. INTEGRATION TESTS (END-TO-END FLOW)
@@ -660,7 +653,7 @@ main:
     print("   TESTING FULL FLOW (INTEGRATION TESTS)")
     print("="*60)
 
-    # Create temporary p2-template.s with preprocessed expressions so RARS can compile it
+    # Create temporary next_token_predictor.s with preprocessed expressions so RARS can compile it
     create_temp_p2_assembly()
 
     # List of integration test cases: (input words list, expected predicted word)
@@ -672,12 +665,12 @@ main:
         (["a", "boy", "needs"], "food")
     ]
 
-    input_filename = "input.txt"
-    backup_filename = "input.txt.bak"
+    input_filename = PART2_DIR / "input.txt"
+    backup_filename = PART2_DIR / "input.txt.bak"
 
     # Backup the original input.txt
     backup_made = False
-    if os.path.exists(input_filename):
+    if input_filename.exists():
         shutil.copyfile(input_filename, backup_filename)
         backup_made = True
 
@@ -692,8 +685,8 @@ main:
                     f.write(w + "\n")
             
             # Run the entire temp_p2.s program in RARS
-            cmd = ["java", "-jar", RARS_PATH, "nc", "dec", TEMP_P2_PATH]
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            cmd = ["java", "-jar", str(RARS_PATH), "nc", "dec", str(TEMP_P2_PATH)]
+            result = subprocess.run(cmd, cwd=PART2_DIR, capture_output=True, text=True)
             
             if result.returncode != 0 and "Program terminated by calling exit" not in result.stdout:
                 print(f"❌ INTEGRATION FAILED {idx}: {' '.join(words)} -> Error executing RARS:\n{result.stderr}")
@@ -726,13 +719,13 @@ main:
         # Restore backup
         if backup_made:
             shutil.copyfile(backup_filename, input_filename)
-            os.remove(backup_filename)
-        elif os.path.exists(input_filename):
-            os.remove(input_filename)
+            backup_filename.unlink(missing_ok=True)
+        elif input_filename.exists():
+            input_filename.unlink(missing_ok=True)
             
         # Clean up temp_p2.s
-        if os.path.exists(TEMP_P2_PATH):
-            os.remove(TEMP_P2_PATH)
+        if TEMP_P2_PATH.exists():
+            TEMP_P2_PATH.unlink(missing_ok=True)
 
     # ----------------------------------------------------
     # GENERAL SUMMARY

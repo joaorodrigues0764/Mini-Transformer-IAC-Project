@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Generated test files
+temp_test.s
+temp_p2.s
+test_read.txt
+input.txt.bak
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*~
+
+# Build / compiled artifacts
+*.o
+*.out
+*.exe
+
+# Local logs
+*.log

@@ -23,12 +23,12 @@ exit:
 #   a2 = pointer to second array
 #   a3 = array length
 # Returns:
-#   a0 = status code  li t1, 0                        
+#   a0 = status code
 #   a1 = dot product result
 # ===========================================================================
 dot:
   li a4, 1                      # minimum array size
-  blt a3, a4, invalid_size      # the array size must be equal or greater than 1
+  blt a3, a4, invalid_size      # the array size must be at least 1
   li t0, 0                      # accumulator
   li t1, 0                      # counter
 
@@ -39,15 +39,15 @@ loop_start:
 
   mul t4, t2, t3                # low part of the multiplication
   mulh t5, t2, t3               # high part of the multiplication
-  srai t2, t4, 31               # if there isn't overflow, the hight part is just the natural extension of the low part
+  srai t2, t4, 31               # if there isn't overflow, the high part is just the natural extension of the low part
   xor t6, t2, t5                # comparison of the high and low parts
   bne t6, x0, overflow          # if the two parts are different, there is overflow
 
-  add t2, t4, t0                # temporary new accumolator
+  add t2, t4, t0                # temporary new accumulator
   xor t3, t2, t0                # xor between the old accumulator and the new one
   xor t6, t4, t2                # xor between the low part of the multiplication and the new accumulator
   and t6, t3, t6                # and between the two XORs
-  blt t6, x0, overflow          # both parts had the same sign but the result has the oposite sign
+  blt t6, x0, overflow          # both parts had the same sign but the result has the opposite sign
   
   mv t0, t2                     # copy the value to the real accumulator
 
